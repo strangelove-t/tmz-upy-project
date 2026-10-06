@@ -1,0 +1,5 @@
+AliasText,QuestionCode,SourceQuestionnaireVersion,CanonicalQuestionnaireVersion,Reason
+¿Qué tan probable consideras que continúes estudiando en esta universidad durante el próximo semestre?,PE02,pre-1.2,1.2,Corrección del periodo académico institucional
+"Declaro que he leído el aviso de privacidad y que conozco las finalidades para las cuales será utilizada la información proporcionada. Otorgo de manera libre, específica, informada y expresa mi consen",CN01,1.2-export,1.2,Truncamiento técnico del encabezado exportado por Forms
+"¿Existe alguna situación personal, familiar, económica, académica o de cualquier otra índole que consideres importante que la universidad conozca porque pudiera dificultar tu permanencia o desempeño a",DC01,1.2-export,1.2,Truncamiento técnico del encabezado exportado por Forms
+"Si deseas, describe brevemente la situación o el tipo de apoyo que consideras necesario. (Opcional)",DC03,1.2-export,1.2,La exportación incluye la etiqueta visual de opcionalidad

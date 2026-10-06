@@ -1,0 +1,106 @@
+QuestionCode,FormsNumber,QuestionText,QuestionType,Required,IsSensitive,QuestionnaireVersion,MappingStatus
+CN01,1,"Declaro que he leído el aviso de privacidad y que conozco las finalidades para las cuales será utilizada la información proporcionada. Otorgo de manera libre, específica, informada y expresa mi consentimiento para que la Universidad Politécnica de Yucatán trate mis datos personales y datos personales sensibles conforme a dicho aviso.",single_choice,true,true,1.2,approved
+DG01,2,Edad,integer,true,false,1.2,approved
+DG02,3,Carrera,single_choice,true,false,1.2,approved
+DG03,4,Grupo,single_choice,true,false,1.2,approved
+DG04,5,Género,single_choice,true,true,1.2,approved
+DG05,6,¿Es tu primera experiencia en educación superior?,single_choice,true,false,1.2,approved
+DG06,7,¿Actualmente tienes alguna actividad laboral?,single_choice,true,false,1.2,approved
+PA01,8,Considero que mi preparación de bachillerato fue suficiente para iniciar la universidad.,likert_agreement,true,false,1.2,approved
+PA02,9,Me siento preparado(a) para enfrentar las exigencias académicas de mi carrera.,likert_agreement,true,false,1.2,approved
+PA03,10,Tengo conocimientos suficientes de matemáticas para afrontar mis materias.,likert_agreement,true,false,1.2,approved
+PA04,11,Tengo conocimientos suficientes de lectura y comprensión para estudiar a nivel universitario.,likert_agreement,true,false,1.2,approved
+PA05,12,Tengo facilidad para comprender instrucciones académicas.,likert_agreement,true,false,1.2,approved
+PA06,13,Puedo aprender contenidos nuevos por mi cuenta.,likert_agreement,true,false,1.2,approved
+PA07,14,Sé cómo organizarme para estudiar antes de un examen.,likert_agreement,true,false,1.2,approved
+PA08,15,Tengo hábitos de estudio establecidos.,likert_agreement,true,false,1.2,approved
+PA09,16,Puedo identificar cuáles son mis principales dificultades académicas.,likert_agreement,true,false,1.2,approved
+PA10,17,"Cuando no comprendo un tema, busco ayuda.",likert_frequency,true,false,1.2,approved
+HO01,18,Organizo mi tiempo para cumplir con mis actividades escolares.,likert_frequency,true,false,1.2,approved
+HO02,19,"Utilizo una agenda, calendario o algún método para organizar mis actividades.",likert_frequency,true,false,1.2,approved
+HO03,20,Dedico diariamente un tiempo específico al estudio.,likert_frequency,true,false,1.2,approved
+HO04,21,Suelo dejar las tareas para el último momento.,likert_frequency,true,false,1.2,approved
+HO05,22,Me cuesta mantener la concentración durante las clases.,likert_frequency,true,false,1.2,approved
+HO06,23,Me distraigo fácilmente cuando estudio.,likert_frequency,true,false,1.2,approved
+HO07,24,Tengo dificultades para cumplir con fechas de entrega.,likert_frequency,true,false,1.2,approved
+HO08,25,Suelo estudiar únicamente cuando tengo un examen.,likert_frequency,true,false,1.2,approved
+HO09,26,Puedo equilibrar adecuadamente mis actividades académicas y personales.,likert_frequency,true,false,1.2,approved
+HO10,27,"Cuando tengo varias tareas, sé cómo establecer prioridades.",likert_frequency,true,false,1.2,approved
+MO01,28,Elegí esta carrera porque realmente me interesa.,likert_agreement,true,false,1.2,approved
+MO02,29,Tengo claridad sobre las actividades profesionales que puedo desempeñar al egresar.,likert_agreement,true,false,1.2,approved
+MO03,30,Considero que mi carrera se relaciona con mis intereses y habilidades.,likert_agreement,true,false,1.2,approved
+MO04,31,Tengo metas profesionales que deseo alcanzar.,likert_agreement,true,false,1.2,approved
+MO05,32,Me siento motivado(a) para concluir mi carrera universitaria.,likert_agreement,true,false,1.2,approved
+MO06,33,Considero importante obtener un título universitario para mi proyecto de vida.,likert_agreement,true,false,1.2,approved
+MO07,34,Mis expectativas sobre la universidad coinciden con la realidad que estoy encontrando.,likert_agreement,true,false,1.2,approved
+MO08,35,He pensado seriamente en cambiarme de carrera.,likert_frequency,true,false,1.2,approved
+MO09,36,He pensado en abandonar la universidad.,likert_frequency,true,false,1.2,approved
+MO10,37,Actualmente tengo dudas importantes sobre si elegí la carrera correcta.,likert_frequency,true,false,1.2,approved
+AU01,38,Me siento capaz de adaptarme a la dinámica universitaria.,likert_agreement,true,false,1.2,approved
+AU02,39,Me siento cómodo(a) dentro de la universidad.,likert_agreement,true,false,1.2,approved
+AU03,40,Considero que puedo adaptarme al ritmo de trabajo de la universidad.,likert_agreement,true,false,1.2,approved
+AU04,41,Sé a quién acudir cuando tengo un problema académico.,likert_agreement,true,false,1.2,approved
+AU05,42,Sé a quién acudir cuando tengo un problema personal que afecta mis estudios.,likert_agreement,true,false,1.2,approved
+AU06,43,Me siento capaz de pedir ayuda cuando la necesito.,likert_agreement,true,false,1.2,approved
+AU07,44,Considero que puedo relacionarme adecuadamente con mis compañeros.,likert_agreement,true,false,1.2,approved
+AU08,45,Me siento integrado(a) al grupo al que pertenezco.,likert_agreement,true,false,1.2,approved
+AU09,46,Siento que pertenezco a la comunidad universitaria.,likert_agreement,true,false,1.2,approved
+AU10,47,Considero que cuento con personas dentro de la universidad que pueden apoyarme.,likert_agreement,true,false,1.2,approved
+ER01,48,Cuento con los recursos económicos necesarios para continuar estudiando.,likert_agreement,true,true,1.2,approved
+ER02,49,Tengo dificultades para cubrir mis gastos de transporte hacia la universidad.,likert_agreement,true,true,1.2,approved
+ER03,50,"Tengo dificultades para adquirir materiales, libros o herramientas necesarias para mis clases.",likert_agreement,true,true,1.2,approved
+ER04,51,Cuento con acceso estable a internet para realizar mis actividades académicas.,likert_agreement,true,true,1.2,approved
+ER05,52,Cuento con computadora o equipo adecuado para realizar mis actividades escolares.,likert_agreement,true,true,1.2,approved
+ER06,53,Mi situación económica podría dificultar mi permanencia en la universidad.,likert_agreement,true,true,1.2,approved
+ER07,54,Necesito trabajar para poder continuar estudiando.,likert_agreement,true,true,1.2,approved
+ER08,55,Mi familia o red de apoyo puede contribuir económicamente a mis estudios.,likert_agreement,true,true,1.2,approved
+ER09,56,En algún momento he considerado abandonar mis estudios por motivos económicos.,likert_agreement,true,true,1.2,approved
+FA01,57,Cuento con apoyo de mi familia para continuar estudiando.,likert_agreement,true,true,1.2,approved
+FA02,58,Mi familia respeta el tiempo que necesito dedicar a mis estudios.,likert_agreement,true,true,1.2,approved
+FA03,59,Tengo responsabilidades familiares que pueden dificultar mi desempeño académico.,likert_agreement,true,true,1.2,approved
+FA04,60,Actualmente existe alguna situación familiar que afecta mi concentración o rendimiento.,likert_agreement,true,true,1.2,approved
+FA05,61,Cuento con al menos una persona de confianza a quien puedo recurrir cuando tengo dificultades.,likert_agreement,true,true,1.2,approved
+FA06,62,Considero que tengo una red de apoyo suficiente para afrontar las dificultades de la universidad.,likert_agreement,true,true,1.2,approved
+ND01,63,¿Alguna vez has recibido un diagnóstico relacionado con una condición del neurodesarrollo o neurodivergencia?,single_choice,true,true,1.2,approved
+ND02,64,"Si respondiste sí, ¿cuál de las siguientes condiciones te ha sido diagnosticada? Puedes seleccionar más de una.",multiple_choice,true,true,1.2,approved
+ND03,65,¿El diagnóstico fue realizado por un profesional especializado?,single_choice,true,true,1.2,approved
+ND04,66,¿Esta condición representa actualmente alguna dificultad para tu desempeño académico?,likert_frequency,true,true,1.2,approved
+ND05,67,"¿Has utilizado anteriormente adecuaciones, apoyos o estrategias educativas relacionadas con esta condición?",single_choice,true,true,1.2,approved
+ND06,68,¿Consideras que actualmente necesitas algún apoyo específico de la universidad relacionado con esta condición?,single_choice,true,true,1.2,approved
+ND07,69,¿Qué tipo de apoyo académico consideras que podría ayudarte?,multiple_choice,true,true,1.2,approved
+SE01,70,¿Has recibido alguna vez un diagnóstico psicológico o psiquiátrico?,single_choice,true,true,1.2,approved
+SE02,71,"Si respondiste sí, ¿cuál de las siguientes condiciones te ha sido diagnosticada?",multiple_choice,true,true,1.2,approved
+SE03,72,¿Actualmente recibes atención psicológica o psiquiátrica?,single_choice,true,true,1.2,approved
+SE04,73,¿Consideras que actualmente tu bienestar emocional está interfiriendo con tus estudios?,likert_frequency,true,true,1.2,approved
+SE05,74,¿Con qué frecuencia tu estado emocional dificulta que te concentres al estudiar o durante las clases?,likert_frequency,true,true,1.2,approved
+SE06,75,"¿Con qué frecuencia tu estado emocional dificulta que inicies, completes o entregues tus actividades académicas?",likert_frequency,true,true,1.2,approved
+SE07,76,¿Has interrumpido anteriormente tus estudios debido a una situación emocional o psicológica?,single_choice,true,true,1.2,approved
+SE08,77,¿Consideras que necesitas actualmente apoyo psicológico u orientación dentro de la universidad?,single_choice,true,true,1.2,approved
+AP01,78,¿Alguna vez un profesional de la salud mental te ha informado que tienes un diagnóstico relacionado con un trastorno de personalidad?,single_choice,true,true,1.2,approved
+AP02,79,"En caso de contar con un diagnóstico previo, ¿deseas indicar cuál?",multiple_choice,true,true,1.2,approved
+AP03,80,¿Actualmente esta situación requiere algún tipo de apoyo o seguimiento para facilitar tu permanencia y desempeño universitario?,single_choice,true,true,1.2,approved
+AP04,81,¿Existe alguna recomendación profesional previa que consideres importante que la universidad conozca para brindarte apoyo académico?,single_choice,true,true,1.2,approved
+CF01,82,¿Tienes actualmente alguna condición física o de salud diagnosticada que pueda interferir con tus actividades universitarias?,single_choice,true,true,1.2,approved
+CF02,83,¿Cuál de las siguientes condiciones tienes o has tenido?,multiple_choice,true,true,1.2,approved
+CF03,84,"¿Esta condición requiere actualmente atención, tratamiento o seguimiento médico?",single_choice,true,true,1.2,approved
+CF04,85,¿Alguna condición física o situación de salud puede dificultar tu asistencia regular a clases?,single_choice,true,true,1.2,approved
+CF05,86,"¿Alguna condición física o situación de salud puede dificultar tu participación en actividades prácticas, laboratorios o actividades físicas?",single_choice,true,true,1.2,approved
+CF06,87,¿Utilizas actualmente algún apoyo o dispositivo para realizar tus actividades cotidianas o académicas?,single_choice,true,true,1.2,approved
+CF07,88,"Si respondiste sí, ¿cuál?",multiple_choice,true,true,1.2,approved
+CF08,89,"¿Requieres alguna adecuación o apoyo específico dentro de la universidad debido a una condición física, sensorial o de salud?",single_choice,true,true,1.2,approved
+CF09,90,¿Existe alguna recomendación médica o profesional que sea importante considerar durante tu estancia en la universidad?,single_choice,true,true,1.2,approved
+PE01,91,¿Con qué frecuencia has pensado que quizá no podrás continuar estudiando en la universidad?,likert_frequency,true,true,1.2,approved
+PE02,92,¿Qué tan probable consideras que continúes estudiando en esta universidad durante el próximo cuatrimestre?,ordinal_choice,true,false,1.2,approved
+PE03,93,"Si tuvieras que abandonar temporalmente la universidad, ¿cuál sería la principal razón?",single_choice,true,true,1.2,approved
+PE04,94,¿Has considerado cambiarte de carrera?,single_choice,true,false,1.2,approved
+PE05,95,¿Qué tan seguro(a) estás de haber elegido la carrera adecuada para ti?,ordinal_choice,true,false,1.2,approved
+PE06,96,¿Consideras que actualmente necesitas algún tipo de apoyo académico para continuar exitosamente tus estudios?,single_choice,true,false,1.2,approved
+PE07,97,¿Qué tipo de apoyo consideras que necesitas?,multiple_choice,true,true,1.2,approved
+DC01,98,"¿Existe alguna situación personal, familiar, económica, académica o de cualquier otra índole que consideres importante que la universidad conozca porque pudiera dificultar tu permanencia o desempeño académico?",open_text,false,true,1.2,approved
+DC02,99,¿Te gustaría que un integrante del Área de Orientación y Tutorías se pusiera en contacto contigo para conversar sobre alguna situación que actualmente te preocupa?,single_choice,true,true,1.2,approved
+DC03,100,"Si deseas, describe brevemente la situación o el tipo de apoyo que consideras necesario.",open_text,false,true,1.2,approved
+ADM_RESPONSE_ID,,Id,administrative,true,true,1.2,approved
+ADM_STARTED_AT,,Start time,administrative,true,true,1.2,approved
+ADM_COMPLETED_AT,,Completion time,administrative,true,true,1.2,approved
+ADM_EMAIL,,Email,administrative,true,true,1.2,approved
+ADM_NAME,,Name,administrative,true,true,1.2,approved

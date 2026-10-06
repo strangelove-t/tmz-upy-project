@@ -1,0 +1,7 @@
+questionnaire_version: "1.2"
+active_scoring_version: "0.2"
+scoring_versions:
+  "0.2":
+    scale_min: 1
+    scale_max: 5
+    incomplete_area_policy: no_score

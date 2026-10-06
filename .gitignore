@@ -1,0 +1,30 @@
+# Entornos y secretos
+.env
+.venv/
+
+# Python y herramientas
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Datos operativos y sensibles
+data/*.db
+data/*.sqlite*
+data/*.csv
+data/*.xlsx
+data/imports/
+exports/**/*.pdf
+exports/**/*.csv
+responses*.csv
+responses*.xlsx
+*.log
+
+# Sistemas operativos y editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -1,0 +1,315 @@
+QuestionCode,Response,ResponseAlias,CorrectedValue,IncludeInAverage,Version
+AU01,De acuerdo,,4,true,0.2
+AU01,En desacuerdo,,2,true,0.2
+AU01,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+AU01,Totalmente de acuerdo,,5,true,0.2
+AU01,Totalmente en desacuerdo,,1,true,0.2
+AU02,De acuerdo,,4,true,0.2
+AU02,En desacuerdo,,2,true,0.2
+AU02,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+AU02,Totalmente de acuerdo,,5,true,0.2
+AU02,Totalmente en desacuerdo,,1,true,0.2
+AU03,De acuerdo,,4,true,0.2
+AU03,En desacuerdo,,2,true,0.2
+AU03,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+AU03,Totalmente de acuerdo,,5,true,0.2
+AU03,Totalmente en desacuerdo,,1,true,0.2
+AU04,De acuerdo,,4,true,0.2
+AU04,En desacuerdo,,2,true,0.2
+AU04,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+AU04,Totalmente de acuerdo,,5,true,0.2
+AU04,Totalmente en desacuerdo,,1,true,0.2
+AU05,De acuerdo,,4,true,0.2
+AU05,En desacuerdo,,2,true,0.2
+AU05,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+AU05,Totalmente de acuerdo,,5,true,0.2
+AU05,Totalmente en desacuerdo,,1,true,0.2
+AU06,De acuerdo,,4,true,0.2
+AU06,En desacuerdo,,2,true,0.2
+AU06,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+AU06,Totalmente de acuerdo,,5,true,0.2
+AU06,Totalmente en desacuerdo,,1,true,0.2
+AU07,De acuerdo,,4,true,0.2
+AU07,En desacuerdo,,2,true,0.2
+AU07,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+AU07,Totalmente de acuerdo,,5,true,0.2
+AU07,Totalmente en desacuerdo,,1,true,0.2
+AU08,De acuerdo,,4,true,0.2
+AU08,En desacuerdo,,2,true,0.2
+AU08,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+AU08,Totalmente de acuerdo,,5,true,0.2
+AU08,Totalmente en desacuerdo,,1,true,0.2
+AU09,De acuerdo,,4,true,0.2
+AU09,En desacuerdo,,2,true,0.2
+AU09,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+AU09,Totalmente de acuerdo,,5,true,0.2
+AU09,Totalmente en desacuerdo,,1,true,0.2
+AU10,De acuerdo,,4,true,0.2
+AU10,En desacuerdo,,2,true,0.2
+AU10,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+AU10,Totalmente de acuerdo,,5,true,0.2
+AU10,Totalmente en desacuerdo,,1,true,0.2
+CF04,Algunas veces,,3,true,0.2
+CF04,No,,5,true,0.2
+CF04,Sí,,1,true,0.2
+CF05,Algunas veces,,3,true,0.2
+CF05,No,,5,true,0.2
+CF05,No aplica,,,false,0.2
+CF05,Sí,,1,true,0.2
+ER01,De acuerdo,,4,true,0.2
+ER01,En desacuerdo,,2,true,0.2
+ER01,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+ER01,Totalmente de acuerdo,,5,true,0.2
+ER01,Totalmente en desacuerdo,,1,true,0.2
+ER02,De acuerdo,,2,true,0.2
+ER02,En desacuerdo,,4,true,0.2
+ER02,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+ER02,Totalmente de acuerdo,,1,true,0.2
+ER02,Totalmente en desacuerdo,,5,true,0.2
+ER03,De acuerdo,,2,true,0.2
+ER03,En desacuerdo,,4,true,0.2
+ER03,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+ER03,Totalmente de acuerdo,,1,true,0.2
+ER03,Totalmente en desacuerdo,,5,true,0.2
+ER04,De acuerdo,,4,true,0.2
+ER04,En desacuerdo,,2,true,0.2
+ER04,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+ER04,Totalmente de acuerdo,,5,true,0.2
+ER04,Totalmente en desacuerdo,,1,true,0.2
+ER05,De acuerdo,,4,true,0.2
+ER05,En desacuerdo,,2,true,0.2
+ER05,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+ER05,Totalmente de acuerdo,,5,true,0.2
+ER05,Totalmente en desacuerdo,,1,true,0.2
+ER06,De acuerdo,,2,true,0.2
+ER06,En desacuerdo,,4,true,0.2
+ER06,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+ER06,Totalmente de acuerdo,,1,true,0.2
+ER06,Totalmente en desacuerdo,,5,true,0.2
+ER07,De acuerdo,,2,true,0.2
+ER07,En desacuerdo,,4,true,0.2
+ER07,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+ER07,Totalmente de acuerdo,,1,true,0.2
+ER07,Totalmente en desacuerdo,,5,true,0.2
+ER08,De acuerdo,,4,true,0.2
+ER08,En desacuerdo,,2,true,0.2
+ER08,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+ER08,Totalmente de acuerdo,,5,true,0.2
+ER08,Totalmente en desacuerdo,,1,true,0.2
+ER09,De acuerdo,,2,true,0.2
+ER09,En desacuerdo,,4,true,0.2
+ER09,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+ER09,Totalmente de acuerdo,,1,true,0.2
+ER09,Totalmente en desacuerdo,,5,true,0.2
+FA01,De acuerdo,,4,true,0.2
+FA01,En desacuerdo,,2,true,0.2
+FA01,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+FA01,Totalmente de acuerdo,,5,true,0.2
+FA01,Totalmente en desacuerdo,,1,true,0.2
+FA02,De acuerdo,,4,true,0.2
+FA02,En desacuerdo,,2,true,0.2
+FA02,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+FA02,Totalmente de acuerdo,,5,true,0.2
+FA02,Totalmente en desacuerdo,,1,true,0.2
+FA03,De acuerdo,,2,true,0.2
+FA03,En desacuerdo,,4,true,0.2
+FA03,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+FA03,Totalmente de acuerdo,,1,true,0.2
+FA03,Totalmente en desacuerdo,,5,true,0.2
+FA04,De acuerdo,,2,true,0.2
+FA04,En desacuerdo,,4,true,0.2
+FA04,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+FA04,Totalmente de acuerdo,,1,true,0.2
+FA04,Totalmente en desacuerdo,,5,true,0.2
+FA05,De acuerdo,,4,true,0.2
+FA05,En desacuerdo,,2,true,0.2
+FA05,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+FA05,Totalmente de acuerdo,,5,true,0.2
+FA05,Totalmente en desacuerdo,,1,true,0.2
+FA06,De acuerdo,,4,true,0.2
+FA06,En desacuerdo,,2,true,0.2
+FA06,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+FA06,Totalmente de acuerdo,,5,true,0.2
+FA06,Totalmente en desacuerdo,,1,true,0.2
+HO01,Algunas veces,,3,true,0.2
+HO01,Casi nunca,,2,true,0.2
+HO01,Casi siempre,,4,true,0.2
+HO01,Nunca,,1,true,0.2
+HO01,Siempre,,5,true,0.2
+HO02,Algunas veces,,3,true,0.2
+HO02,Casi nunca,,2,true,0.2
+HO02,Casi siempre,,4,true,0.2
+HO02,Nunca,,1,true,0.2
+HO02,Siempre,,5,true,0.2
+HO03,Algunas veces,,3,true,0.2
+HO03,Casi nunca,,2,true,0.2
+HO03,Casi siempre,,4,true,0.2
+HO03,Nunca,,1,true,0.2
+HO03,Siempre,,5,true,0.2
+HO04,Algunas veces,,3,true,0.2
+HO04,Casi nunca,,4,true,0.2
+HO04,Casi siempre,,2,true,0.2
+HO04,Nunca,,5,true,0.2
+HO04,Siempre,,1,true,0.2
+HO05,Algunas veces,,3,true,0.2
+HO05,Casi nunca,,4,true,0.2
+HO05,Casi siempre,,2,true,0.2
+HO05,Nunca,,5,true,0.2
+HO05,Siempre,,1,true,0.2
+HO06,Algunas veces,,3,true,0.2
+HO06,Casi nunca,,4,true,0.2
+HO06,Casi siempre,,2,true,0.2
+HO06,Nunca,,5,true,0.2
+HO06,Siempre,,1,true,0.2
+HO07,Algunas veces,,3,true,0.2
+HO07,Casi nunca,,4,true,0.2
+HO07,Casi siempre,,2,true,0.2
+HO07,Nunca,,5,true,0.2
+HO07,Siempre,,1,true,0.2
+HO08,Algunas veces,,3,true,0.2
+HO08,Casi nunca,,4,true,0.2
+HO08,Casi siempre,,2,true,0.2
+HO08,Nunca,,5,true,0.2
+HO08,Siempre,,1,true,0.2
+HO09,Algunas veces,,3,true,0.2
+HO09,Casi nunca,,2,true,0.2
+HO09,Casi siempre,,4,true,0.2
+HO09,Nunca,,1,true,0.2
+HO09,Siempre,,5,true,0.2
+HO10,Algunas veces,,3,true,0.2
+HO10,Casi nunca,,2,true,0.2
+HO10,Casi siempre,,4,true,0.2
+HO10,Nunca,,1,true,0.2
+HO10,Siempre,,5,true,0.2
+MO01,De acuerdo,,4,true,0.2
+MO01,En desacuerdo,,2,true,0.2
+MO01,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+MO01,Totalmente de acuerdo,,5,true,0.2
+MO01,Totalmente en desacuerdo,,1,true,0.2
+MO02,De acuerdo,,4,true,0.2
+MO02,En desacuerdo,,2,true,0.2
+MO02,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+MO02,Totalmente de acuerdo,,5,true,0.2
+MO02,Totalmente en desacuerdo,,1,true,0.2
+MO03,De acuerdo,,4,true,0.2
+MO03,En desacuerdo,,2,true,0.2
+MO03,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+MO03,Totalmente de acuerdo,,5,true,0.2
+MO03,Totalmente en desacuerdo,,1,true,0.2
+MO04,De acuerdo,,4,true,0.2
+MO04,En desacuerdo,,2,true,0.2
+MO04,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+MO04,Totalmente de acuerdo,,5,true,0.2
+MO04,Totalmente en desacuerdo,,1,true,0.2
+MO05,De acuerdo,,4,true,0.2
+MO05,En desacuerdo,,2,true,0.2
+MO05,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+MO05,Totalmente de acuerdo,,5,true,0.2
+MO05,Totalmente en desacuerdo,,1,true,0.2
+MO06,De acuerdo,,4,true,0.2
+MO06,En desacuerdo,,2,true,0.2
+MO06,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+MO06,Totalmente de acuerdo,,5,true,0.2
+MO06,Totalmente en desacuerdo,,1,true,0.2
+MO07,De acuerdo,,4,true,0.2
+MO07,En desacuerdo,,2,true,0.2
+MO07,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+MO07,Totalmente de acuerdo,,5,true,0.2
+MO07,Totalmente en desacuerdo,,1,true,0.2
+MO08,Algunas veces,,3,true,0.2
+MO08,Casi nunca,,4,true,0.2
+MO08,Casi siempre,,2,true,0.2
+MO08,Nunca,,5,true,0.2
+MO08,Siempre,,1,true,0.2
+MO09,Algunas veces,,3,true,0.2
+MO09,Casi nunca,,4,true,0.2
+MO09,Casi siempre,,2,true,0.2
+MO09,Nunca,,5,true,0.2
+MO09,Siempre,,1,true,0.2
+MO10,Algunas veces,,3,true,0.2
+MO10,Casi nunca,,4,true,0.2
+MO10,Casi siempre,,2,true,0.2
+MO10,Nunca,,5,true,0.2
+MO10,Siempre,,1,true,0.2
+PA01,De acuerdo,,4,true,0.2
+PA01,En desacuerdo,,2,true,0.2
+PA01,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+PA01,Totalmente de acuerdo,,5,true,0.2
+PA01,Totalmente en desacuerdo,,1,true,0.2
+PA02,De acuerdo,,4,true,0.2
+PA02,En desacuerdo,,2,true,0.2
+PA02,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+PA02,Totalmente de acuerdo,,5,true,0.2
+PA02,Totalmente en desacuerdo,,1,true,0.2
+PA03,De acuerdo,,4,true,0.2
+PA03,En desacuerdo,,2,true,0.2
+PA03,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+PA03,Totalmente de acuerdo,,5,true,0.2
+PA03,Totalmente en desacuerdo,,1,true,0.2
+PA04,De acuerdo,,4,true,0.2
+PA04,En desacuerdo,,2,true,0.2
+PA04,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+PA04,Totalmente de acuerdo,,5,true,0.2
+PA04,Totalmente en desacuerdo,,1,true,0.2
+PA05,De acuerdo,,4,true,0.2
+PA05,En desacuerdo,,2,true,0.2
+PA05,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+PA05,Totalmente de acuerdo,,5,true,0.2
+PA05,Totalmente en desacuerdo,,1,true,0.2
+PA06,De acuerdo,,4,true,0.2
+PA06,En desacuerdo,,2,true,0.2
+PA06,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+PA06,Totalmente de acuerdo,,5,true,0.2
+PA06,Totalmente en desacuerdo,,1,true,0.2
+PA07,De acuerdo,,4,true,0.2
+PA07,En desacuerdo,,2,true,0.2
+PA07,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+PA07,Totalmente de acuerdo,,5,true,0.2
+PA07,Totalmente en desacuerdo,,1,true,0.2
+PA08,De acuerdo,,4,true,0.2
+PA08,En desacuerdo,,2,true,0.2
+PA08,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+PA08,Totalmente de acuerdo,,5,true,0.2
+PA08,Totalmente en desacuerdo,,1,true,0.2
+PA09,De acuerdo,,4,true,0.2
+PA09,En desacuerdo,,2,true,0.2
+PA09,Ni de acuerdo ni en desacuerdo,,3,true,0.2
+PA09,Totalmente de acuerdo,,5,true,0.2
+PA09,Totalmente en desacuerdo,,1,true,0.2
+PA10,Algunas veces,,3,true,0.2
+PA10,Casi nunca,,2,true,0.2
+PA10,Casi siempre,,4,true,0.2
+PA10,Nunca,,1,true,0.2
+PA10,Siempre,,5,true,0.2
+PE01,Algunas veces,,3,true,0.2
+PE01,Frecuentemente,,2,true,0.2
+PE01,Muy frecuentemente,,1,true,0.2
+PE01,Nunca,,5,true,0.2
+PE01,Rara vez,,4,true,0.2
+PE02,Muy probable,,5,true,0.2
+PE02,Nada probable,,1,true,0.2
+PE02,No estoy seguro(a),,3,true,0.2
+PE02,Poco probable,,2,true,0.2
+PE02,Probable,,4,true,0.2
+PE04,"Lo he pensado, pero no estoy seguro(a)",,3,true,0.2
+PE04,No,,5,true,0.2
+PE04,Sí,,1,true,0.2
+PE05,Muy seguro(a),,5,true,0.2
+PE05,Nada seguro(a),,1,true,0.2
+PE05,Poco seguro(a),,2,true,0.2
+PE05,Seguro(a),,4,true,0.2
+SE04,Algunas veces,,3,true,0.2
+SE04,Casi nunca,,4,true,0.2
+SE04,Casi siempre,,2,true,0.2
+SE04,Nunca,,5,true,0.2
+SE04,Siempre,,1,true,0.2
+SE05,Algunas veces,,3,true,0.2
+SE05,Casi nunca,,4,true,0.2
+SE05,Casi siempre,,2,true,0.2
+SE05,Nunca,,5,true,0.2
+SE05,Siempre,,1,true,0.2
+SE06,Algunas veces,,3,true,0.2
+SE06,Casi nunca,,4,true,0.2
+SE06,Casi siempre,,2,true,0.2
+SE06,Nunca,,5,true,0.2
+SE06,Siempre,,1,true,0.2

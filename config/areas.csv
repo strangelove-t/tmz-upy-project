@@ -1,0 +1,10 @@
+AreaCode,AreaName,ExpectedItemCount,MinimumValidItemCount,GreenMin,YellowMin,Version
+A01,Preparación académica,10,10,70,40,0.2
+A02,Hábitos y organización,10,10,70,40,0.2
+A03,Motivación y elección de carrera,10,10,70,40,0.2
+A04,Adaptación e integración,10,10,70,40,0.2
+A05,Recursos económicos,9,9,70,40,0.2
+A06,Contexto familiar y red de apoyo,6,6,70,40,0.2
+A07,Bienestar emocional funcional,3,3,70,40,0.2
+A08,Accesibilidad y funcionamiento físico,2,2,70,40,0.2
+A09,Continuidad y permanencia,4,4,70,40,0.2
