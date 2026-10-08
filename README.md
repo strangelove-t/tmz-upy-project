@@ -36,6 +36,19 @@ Instala el proyecto y sus herramientas de desarrollo:
 python -m pip install -e ".[dev]"
 ```
 
+## Contraseña local
+
+La aplicación completa está protegida por una sola contraseña, sin usuarios,
+perfiles ni roles. Antes del primer inicio:
+
+```bash
+python scripts/set_local_password.py
+```
+
+Sólo se guarda sal + hash `scrypt` en `.streamlit/secrets.toml` (ignorado por
+Git). El equipo de desarrollo no necesita una identidad dentro de la
+aplicación instalada.
+
 ## Ejecución
 
 ```bash
@@ -43,8 +56,22 @@ python -m streamlit run app.py
 ```
 
 En Windows también se puede usar `run_windows.bat` después de preparar `.venv`.
-La interfaz se abre en el navegador, pero el proceso y los datos permanecen en
-la computadora local.
+Streamlit escucha sólo en `http://127.0.0.1:8501`; ninguna otra computadora
+puede conectarse. Inicio, cierre, cambio de contraseña, respaldo, restauración
+y manejo de exportaciones están en `docs/OPERACION_LOCAL.md`.
+
+## Piloto con registros de prueba
+
+Con exactamente un CSV en `data/`:
+
+```bash
+python scripts/run_acceptance.py
+```
+
+Procesa sólo las líneas 2–15 en una base temporal y muestra únicamente
+conteos. Los resultados se registran en `docs/checklists/ACEPTACION_PILOTO.md`;
+la importación real permanece bloqueada hasta que la maestra firme la
+autorización de ese checklist.
 
 ## Verificación
 
@@ -116,5 +143,5 @@ no sustituye los controles institucionales de acceso, cifrado y respaldo.
 ## Estado y continuidad
 
 El estado técnico detallado, las decisiones vigentes y el procedimiento para
-continuar se encuentran en `docs/HANDOFF_2026-10-07.md`. El handoff anterior
-(`docs/HANDOFF_2026-10-06.md`) se conserva como historial.
+continuar se encuentran en `docs/HANDOFF_2026-10-08.md`. Los handoffs
+anteriores se conservan como historial.
