@@ -1,5 +1,24 @@
 {
-  "template_version": "0.1",
+  "template_version": "1.0",
   "report_type": "student",
-  "fields": []
+  "title": "Reporte de tamizaje y orientación",
+  "fields": [
+    "student_name",
+    "career",
+    "group_name",
+    "generated_at",
+    "scoring_version",
+    "areas",
+    "strengths",
+    "opportunities",
+    "recommendations",
+    "resources",
+    "disclaimer"
+  ],
+  "resources": [
+    "Área de Orientación y Tutorías de la Universidad Politécnica de Yucatán.",
+    "Asesorías académicas con tus docentes y tutor o tutora de grupo.",
+    "Información de becas y apoyos institucionales en Servicios Escolares."
+  ],
+  "disclaimer": "Este reporte proviene de un instrumento de tamizaje y orientación. No constituye un diagnóstico psicológico, clínico ni académico."
 }

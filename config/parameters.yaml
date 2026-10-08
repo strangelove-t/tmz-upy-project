@@ -5,3 +5,13 @@ scoring_versions:
     scale_min: 1
     scale_max: 5
     incomplete_area_policy: no_score
+active_alert_rules_version: "0.1"
+# Orden de severidad para consolidar casos: el primero es el más urgente.
+alert_levels:
+  - Atención prioritaria
+  - Revisión manual
+  - Seguimiento preventivo
+# Categoría cuya alerta convierte la fuente del caso en "Solicitud del alumno".
+contact_request_category: Solicitud de contacto
+# Agregados por grupo con menos estudiantes no se muestran.
+minimum_group_size: 5

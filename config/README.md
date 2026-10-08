@@ -48,8 +48,24 @@ históricos conservan la versión con la que fueron calculados. En v0.2 todos lo
 pesos son `1`, los umbrales por área son `70/40` y `CF05 = No aplica` se excluye
 del promedio y del conteo aplicable.
 
-`alert_rules.csv` y `recommendations.csv` permanecen como contratos para fases
-posteriores; no intervienen todavía en el cálculo de áreas.
+Las alertas se evalúan por separado del scoring mediante:
+
+- `alert_rules.csv`: 44 reglas v0.1 en 24 reactivos. `MatchType = exact`
+  compara la respuesta normalizada sin coincidencia difusa; `non_empty` detona
+  con cualquier texto abierto no vacío (DC01, DC03) sin copiar el texto a la
+  alerta. `RuleVersion` debe coincidir con `active_alert_rules_version`.
+- `parameters.yaml`: `alert_levels` define el orden de severidad usado para el
+  nivel del caso (`Atención prioritaria > Revisión manual > Seguimiento
+  preventivo`); `contact_request_category` marca la fuente
+  `Solicitud del alumno`; `minimum_group_size` oculta agregados de grupos
+  pequeños.
+- `recommendations.csv`: una recomendación por área y semáforo para la versión
+  de scoring activa (27 en v0.2), con texto para el alumno y para el personal.
+  Un área incompleta no recibe recomendación.
+
+Los textos de motivo, acción sugerida y recomendaciones son una primera
+redacción operativa y requieren validación de Orientación y Tutorías. Para
+cambiarlos sin alterar el historial, crear filas con una versión nueva.
 
 No se deben inferir valores por la posición de una opción ni usar coincidencia
 difusa. Una respuesta no configurada deja el área incompleta.

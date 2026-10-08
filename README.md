@@ -55,11 +55,33 @@ python -m ruff check .
 
 ## Fuentes de verdad
 
-El diccionario v1.2 y los catálogos de scoring v0.2 están disponibles en
-`config/`. Las áreas, pesos, respuestas corregidas, exclusiones, umbrales y
-versión activa son configurables; consulta `config/README.md` antes de cambiar
-una regla. Alertas, recomendaciones y dashboards permanecen como fases
-posteriores.
+El diccionario v1.2, el scoring v0.2, las 44 reglas de alerta v0.1 y las
+recomendaciones por área y semáforo están disponibles en `config/`. Las
+plantillas de reportes (lista blanca de campos) están en `templates/`. Consulta
+`config/README.md` antes de cambiar una regla.
+
+## Guía breve de uso
+
+1. **Página principal**: selecciona el CSV exportado de Forms, revisa conteos y
+   mapeo, desactiva el modo seguro, confirma la autorización e importa. El
+   scoring, las alertas, las recomendaciones y los casos se calculan en la
+   misma transacción.
+2. **Resumen**: alumnos procesados, casos por nivel, solicitudes de contacto y
+   distribución de semáforos por área.
+3. **Casos**: lista priorizada con filtros y búsqueda. Selecciona un caso para
+   registrar estado, contacto, responsable, próximo seguimiento, canalización,
+   cierre y notas.
+4. **Grupos**: promedios y semáforos por carrera y grupo. Los grupos con menos
+   alumnos que `minimum_group_size` no muestran agregados.
+5. **Estudiantes**: expediente individual con áreas, recomendaciones, alertas,
+   caso y respuestas (las sensibles quedan ocultas hasta activarlas). Si un
+   alumno tiene varios envíos, aquí se elige el vigente.
+6. **Reportes**: vista previa y descarga del reporte del estudiante o del
+   expediente sanitizado para asesor; generación por lote en `exports/` con
+   manifiesto `correo → archivo`.
+
+Al cambiar la versión activa de scoring o de reglas, usa **Recalcular** en la
+página principal para aplicarla a los envíos ya guardados sin reimportar.
 
 ## Confidencialidad
 
@@ -92,4 +114,5 @@ no sustituye los controles institucionales de acceso, cifrado y respaldo.
 ## Estado y continuidad
 
 El estado técnico detallado, las decisiones vigentes y el procedimiento para
-continuar se encuentran en `docs/HANDOFF_2026-10-06.md`.
+continuar se encuentran en `docs/HANDOFF_2026-10-07.md`. El handoff anterior
+(`docs/HANDOFF_2026-10-06.md`) se conserva como historial.

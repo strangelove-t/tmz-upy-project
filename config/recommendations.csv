@@ -1,1 +1,28 @@
 RecommendationCode,AreaCode,TrafficLight,StudentRecommendation,StaffRecommendation,Version
+REC-A01-V,A01,Verde,Tu preparación académica es una fortaleza. Aprovéchala apoyando a tus compañeros y manteniendo tu ritmo de estudio.,Reconocer la fortaleza y considerar al estudiante como posible par de apoyo.,0.2
+REC-A01-A,A01,Amarillo,Identifica las materias que más se te dificultan y acude a asesorías desde las primeras semanas.,Sugerir asesorías académicas en las materias base y dar seguimiento en el primer parcial.,0.2
+REC-A01-R,A01,Rojo,Acércate a Orientación y Tutorías para construir un plan de nivelación académica con apoyo de tus docentes.,Canalizar a asesorías de nivelación y acordar un plan de seguimiento académico temprano.,0.2
+REC-A02-V,A02,Verde,Tus hábitos de estudio y organización te favorecen. Mantenlos durante todo el cuatrimestre.,Reforzar positivamente los hábitos de organización reportados.,0.2
+REC-A02-A,A02,Amarillo,"Usa una agenda o calendario, divide tus tareas en pasos pequeños y reserva tiempo diario para estudiar.",Compartir estrategias de gestión del tiempo y técnicas de estudio.,0.2
+REC-A02-R,A02,Rojo,Solicita apoyo en Orientación y Tutorías para aprender técnicas de organización y planeación de estudio.,Ofrecer taller o sesión individual de hábitos de estudio y organización.,0.2
+REC-A03-V,A03,Verde,Tu motivación y claridad sobre tu carrera son una base sólida para avanzar.,Reconocer la claridad vocacional y vincular con actividades de la carrera.,0.2
+REC-A03-A,A03,Amarillo,Conversa con docentes y estudiantes de semestres avanzados para conocer mejor tu carrera y sus oportunidades.,Promover actividades de exploración profesional y conversación sobre expectativas.,0.2
+REC-A03-R,A03,Rojo,Agenda una conversación con Orientación y Tutorías para revisar tus intereses y metas profesionales.,Ofrecer orientación vocacional y revisar dudas sobre la elección de carrera.,0.2
+REC-A04-V,A04,Verde,Te estás integrando bien a la vida universitaria. Sigue participando en las actividades de tu comunidad.,Reconocer la integración y fomentar la participación en la comunidad.,0.2
+REC-A04-A,A04,Amarillo,Participa en actividades culturales o deportivas y acércate a tu tutor o tutora cuando lo necesites.,Facilitar la integración al grupo y recordar a quién acudir ante dificultades.,0.2
+REC-A04-R,A04,Rojo,Acércate a Orientación y Tutorías: podemos ayudarte a integrarte y a conocer los apoyos disponibles.,Dar acompañamiento cercano para la adaptación e integración al grupo.,0.2
+REC-A05-V,A05,Verde,Cuentas con recursos para tus estudios. Mantente informado(a) sobre becas y apoyos por si los necesitas.,Sin acción específica; mantener información de apoyos disponible.,0.2
+REC-A05-A,A05,Amarillo,Infórmate sobre becas y apoyos institucionales disponibles para estudiantes.,Compartir convocatorias de becas y apoyos económicos.,0.2
+REC-A05-R,A05,Rojo,Acude a Orientación y Tutorías para conocer becas y apoyos que puedan ayudarte a continuar tus estudios.,Canalizar al área de becas y apoyos y dar seguimiento a la situación económica.,0.2
+REC-A06-V,A06,Verde,Tu red de apoyo es una fortaleza importante. Apóyate en ella cuando lo necesites.,Reconocer la red de apoyo reportada.,0.2
+REC-A06-A,A06,Amarillo,Identifica a las personas de confianza a quienes puedes acudir y comparte con ellas tus metas académicas.,Explorar la red de apoyo y ofrecer acompañamiento institucional.,0.2
+REC-A06-R,A06,Rojo,"Recuerda que en la universidad también cuentas con apoyo. Acércate a Orientación y Tutorías cuando lo necesites.",Ofrecer acompañamiento institucional y explorar responsabilidades familiares que afecten el desempeño.,0.2
+REC-A07-V,A07,Verde,"Reportas un bienestar emocional que favorece tus estudios. Cuida tu descanso, alimentación y tiempo libre.",Sin acción específica; mantener disponibilidad de Orientación.,0.2
+REC-A07-A,A07,Amarillo,Cuida tu descanso y busca espacios para hablar de lo que te preocupa. Orientación y Tutorías está disponible para ti.,Ofrecer espacio de escucha y recursos de bienestar.,0.2
+REC-A07-R,A07,Rojo,Te invitamos a acercarte a Orientación y Tutorías para recibir acompañamiento.,Priorizar contacto de Orientación para valorar el acompañamiento adecuado.,0.2
+REC-A08-V,A08,Verde,No reportas dificultades de accesibilidad o salud que afecten tus actividades.,Sin acción específica.,0.2
+REC-A08-A,A08,Amarillo,"Si alguna condición de salud afecta tus actividades, informa a Orientación y Tutorías para valorar apoyos.",Verificar si se requieren adecuaciones razonables.,0.2
+REC-A08-R,A08,Rojo,Acércate a Orientación y Tutorías para acordar los apoyos o adecuaciones que necesitas.,Coordinar adecuaciones razonables y comunicar las necesarias a docentes.,0.2
+REC-A09-V,A09,Verde,Muestras intención firme de continuar tus estudios. ¡Sigue adelante!,Reconocer la intención de permanencia.,0.2
+REC-A09-A,A09,Amarillo,"Si tienes dudas sobre continuar, conversa con Orientación y Tutorías antes de tomar una decisión.",Dar seguimiento preventivo a la intención de permanencia.,0.2
+REC-A09-R,A09,Rojo,"Antes de tomar cualquier decisión sobre tus estudios, acércate a Orientación y Tutorías para revisar opciones de apoyo.",Priorizar entrevista de permanencia y revisar apoyos disponibles.,0.2
