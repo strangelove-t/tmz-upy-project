@@ -4,8 +4,7 @@ import streamlit as st
 from tamizaje.repository import area_results_frame, cases_frame, last_import
 from tamizaje.ui import DISCLAIMER, LIGHT_COLORS, LIGHT_ORDER, require_context
 
-st.set_page_config(page_title="Resumen · Tamizaje UPY", page_icon="📊", layout="wide")
-st.title("Resumen institucional")
+st.title("Inicio")
 st.caption(DISCLAIMER)
 
 engine, connection = require_context()

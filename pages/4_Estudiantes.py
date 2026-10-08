@@ -13,9 +13,6 @@ from tamizaje.repository import (
 )
 from tamizaje.ui import DISCLAIMER, LIGHT_COLORS, question_texts, require_context
 
-st.set_page_config(
-    page_title="Estudiantes · Tamizaje UPY", page_icon="🧑‍🎓", layout="wide"
-)
 st.title("Expediente del estudiante")
 RESPONSE_COLUMNS = ["question_code", "question_text", "response_raw"]
 st.caption(DISCLAIMER)

@@ -4,7 +4,6 @@ import streamlit as st
 from tamizaje.repository import area_results_frame, cases_frame
 from tamizaje.ui import DISCLAIMER, LIGHT_COLORS, LIGHT_ORDER, require_context
 
-st.set_page_config(page_title="Grupos · Tamizaje UPY", page_icon="👥", layout="wide")
 st.title("Resultados por carrera y grupo")
 st.caption(DISCLAIMER)
 

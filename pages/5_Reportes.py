@@ -14,7 +14,6 @@ from tamizaje.reports import (
 from tamizaje.repository import students_frame
 from tamizaje.ui import DATABASE_PATH, EXPORTS_DIR, require_context
 
-st.set_page_config(page_title="Reportes · Tamizaje UPY", page_icon="📄", layout="wide")
 st.title("Reportes")
 st.caption(
     "Los reportes usan una lista blanca de campos: el del estudiante no incluye "

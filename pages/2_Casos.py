@@ -8,7 +8,6 @@ from tamizaje.normalization import normalize_text
 from tamizaje.repository import case_notes, cases_frame, submission_alerts
 from tamizaje.ui import DISCLAIMER, area_names, require_context
 
-st.set_page_config(page_title="Casos · Tamizaje UPY", page_icon="📋", layout="wide")
 st.title("Casos")
 st.caption(
     "Orden predeterminado: solicitud de contacto, nivel, menor área, alertas "

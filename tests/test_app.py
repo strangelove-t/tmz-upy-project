@@ -1,5 +1,13 @@
-from app_helpers import ROOT, TEST_PASSWORD, configured_app, log_in
+from app_helpers import (
+    ROOT,
+    TEST_PASSWORD,
+    configured_app,
+    log_in,
+    run_authenticated_page,
+)
 from streamlit.testing.v1 import AppTest
+
+from tamizaje import ui
 
 
 def test_app_requires_password() -> None:
@@ -8,6 +16,7 @@ def test_app_requires_password() -> None:
     assert not app.exception
     assert any(field.label == "Contraseña" for field in app.text_input)
     assert not app.get("file_uploader")
+    assert not app.metric
 
 
 def test_app_without_configured_password_is_blocked() -> None:
@@ -19,20 +28,19 @@ def test_app_without_configured_password_is_blocked() -> None:
     assert not app.exception
     assert any("contraseña local configurada" in error.value for error in app.error)
     assert not app.text_input
-    assert not app.get("file_uploader")
 
 
 def test_app_rejects_wrong_password_and_accepts_correct_one() -> None:
     app = log_in(configured_app().run(), "incorrecta-pero-larga")
 
     assert any("Contraseña incorrecta" in error.value for error in app.error)
-    assert not app.get("file_uploader")
+    assert "authenticated" not in app.session_state
 
     log_in(app, TEST_PASSWORD)
 
     assert not app.exception
     assert app.session_state["authenticated"] is True
-    assert len(app.get("file_uploader")) == 1
+    assert app.title[0].value == "Inicio"
 
 
 def test_logout_clears_session() -> None:
@@ -45,19 +53,36 @@ def test_logout_clears_session() -> None:
     assert any(field.label == "Contraseña" for field in app.text_input)
 
 
-def test_app_shows_csv_import_control() -> None:
+def test_authenticated_app_opens_operational_home() -> None:
     app = configured_app(authenticated=True).run()
 
     assert not app.exception
+    assert app.title[0].value == "Inicio"
+    assert not app.get("file_uploader")
+
+
+def test_navigation_is_ordered_by_daily_use() -> None:
+    assert [page.title for page in ui.NAVIGATION] == [
+        "Inicio",
+        "Casos",
+        "Estudiantes",
+        "Grupos",
+        "Reportes",
+        "Administración",
+    ]
+    assert all((ROOT / page.path).is_file() for page in ui.NAVIGATION)
+
+
+def test_administration_keeps_csv_import_control() -> None:
+    app = run_authenticated_page("6_Administracion.py")
+
+    assert not app.exception
+    assert app.title[0].value == "Administración"
     assert len(app.get("file_uploader")) == 1
     assert any(
         "Catálogo aprobado: 105" in caption.value
         and "Texto verificado: 0" in caption.value
         and "Pendientes de revisión: 0" in caption.value
         for caption in app.caption
-    )
-    assert any(
-        "Las líneas 2–15 se excluyen de la importación real" in info.value
-        for info in app.info
     )
     assert any("Scoring activo: 0.2" in caption.value for caption in app.caption)

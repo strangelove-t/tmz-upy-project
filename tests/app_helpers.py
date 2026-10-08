@@ -19,6 +19,13 @@ def configured_app(path: str = "app.py", *, authenticated: bool = False) -> AppT
     return app
 
 
+def run_authenticated_page(name: str) -> AppTest:
+    """Ejecuta una página a través del router, como en la aplicación real."""
+    app = configured_app(authenticated=True)
+    app.switch_page(f"pages/{name}")
+    return app.run()
+
+
 def log_in(app: AppTest, password: str) -> AppTest:
     next(field for field in app.text_input if field.label == "Contraseña").input(
         password

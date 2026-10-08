@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from app_helpers import configured_app
+from app_helpers import configured_app, run_authenticated_page
 from synthetic_forms import project_config, synthetic_rows
 
 from tamizaje import ui
@@ -10,6 +10,7 @@ from tamizaje.importers import preview_csv
 
 PAGES_DIR = Path(__file__).parents[1] / "pages"
 PAGES = sorted(path.name for path in PAGES_DIR.glob("*.py"))
+DATA_PAGES = [name for name in PAGES if name != "6_Administracion.py"]
 
 
 @pytest.fixture
@@ -40,7 +41,15 @@ def synthetic_database(tmp_path, monkeypatch):
 
 
 def run_page(name: str, *, authenticated: bool = True):
-    return configured_app(f"pages/{name}", authenticated=authenticated).run()
+    if authenticated:
+        return run_authenticated_page(name)
+    # Sin sesión se ejecuta la página directamente: su propia puerta debe
+    # detenerla aunque alguien la abra sin pasar por el router.
+    return configured_app(f"pages/{name}").run()
+
+
+def test_all_six_pages_exist() -> None:
+    assert len(PAGES) == 6
 
 
 @pytest.mark.parametrize("name", PAGES)
@@ -55,7 +64,7 @@ def test_pages_require_authentication_before_reading(
     assert not app.metric
 
 
-@pytest.mark.parametrize("name", PAGES)
+@pytest.mark.parametrize("name", DATA_PAGES)
 def test_pages_without_database_show_guidance(name, tmp_path, monkeypatch) -> None:
     monkeypatch.setattr(ui, "DATABASE_PATH", tmp_path / "missing.db")
 

@@ -1,6 +1,7 @@
 """Utilidades compartidas por las páginas de Streamlit."""
 
 import sqlite3
+from dataclasses import dataclass
 from pathlib import Path
 
 import streamlit as st
@@ -28,6 +29,53 @@ DISCLAIMER = (
     "Este instrumento es de tamizaje y orientación; no constituye un "
     "diagnóstico psicológico o clínico."
 )
+
+
+
+
+@dataclass(frozen=True)
+class NavigationPage:
+    path: str
+    title: str
+    icon: str
+
+
+# Ordenado por frecuencia de uso; Administración queda fuera del día a día.
+NAVIGATION = (
+    NavigationPage("pages/1_Resumen.py", "Inicio", ":material/home:"),
+    NavigationPage("pages/2_Casos.py", "Casos", ":material/assignment:"),
+    NavigationPage("pages/4_Estudiantes.py", "Estudiantes", ":material/school:"),
+    NavigationPage("pages/3_Grupos.py", "Grupos", ":material/groups:"),
+    NavigationPage("pages/5_Reportes.py", "Reportes", ":material/description:"),
+    NavigationPage(
+        "pages/6_Administracion.py", "Administración", ":material/settings:"
+    ),
+)
+
+
+def apply_theme() -> None:
+    """CSS mínimo compartido; los colores base viven en .streamlit/config.toml."""
+    st.markdown(
+        """
+        <style>
+        .block-container {max-width: 1180px; padding-top: 2rem;}
+        [data-testid="stMetric"] {
+            background: #ffffff; border: 1px solid #dfe5ea;
+            border-radius: 12px; padding: 0.75rem 1rem;
+        }
+        div[data-testid="stForm"] {
+            border: 1px solid #dfe5ea; border-radius: 12px; padding: 1rem;
+        }
+        :focus-visible {outline: 3px solid #0b6e75; outline-offset: 2px;}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def page_header(title: str, description: str) -> None:
+    st.title(title)
+    st.caption(description)
 
 
 @st.cache_resource
@@ -91,13 +139,13 @@ def require_authentication(*, show_logout: bool = True) -> None:
 
 def require_context() -> tuple[EngineConfig, sqlite3.Connection]:
     """Detiene la página sin sesión, sin configuración o sin importaciones."""
-    require_authentication()
+    require_authentication(show_logout=False)
     engine = load_engine()
     if engine is None:
         st.error("No fue posible cargar la configuración del motor.")
         st.stop()
     if not DATABASE_PATH.exists():
-        st.info("Aún no hay datos. Importa una exportación desde la página principal.")
+        st.info("Aún no hay datos. Importa una exportación desde Administración.")
         st.stop()
     connection = connect_database(DATABASE_PATH)
     initialize_database(connection)
