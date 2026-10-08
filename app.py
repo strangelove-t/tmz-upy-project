@@ -24,10 +24,12 @@ from tamizaje.questionnaire import (
 from tamizaje.questionnaire_draft import read_pending_headers
 from tamizaje.recommendations import RecommendationConfigError
 from tamizaje.scoring_config import ScoringConfigError
+from tamizaje.ui import require_authentication
 
 TEST_DATA_ROWS = 14
 
 st.set_page_config(page_title="Tamizaje UPY", page_icon="🎓", layout="wide")
+require_authentication()
 
 st.title("Tamizaje y Orientación UPY")
 st.caption(f"Aplicación local · scoring v{SCORING_VERSION}")

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from streamlit.testing.v1 import AppTest
+from app_helpers import configured_app
 from synthetic_forms import project_config, synthetic_rows
 
 from tamizaje import ui
@@ -39,8 +39,20 @@ def synthetic_database(tmp_path, monkeypatch):
     return database_path
 
 
-def run_page(name: str) -> AppTest:
-    return AppTest.from_file(str(PAGES_DIR / name), default_timeout=30).run()
+def run_page(name: str, *, authenticated: bool = True):
+    return configured_app(f"pages/{name}", authenticated=authenticated).run()
+
+
+@pytest.mark.parametrize("name", PAGES)
+def test_pages_require_authentication_before_reading(
+    name, synthetic_database
+) -> None:
+    app = run_page(name, authenticated=False)
+
+    assert not app.exception
+    assert any(field.label == "Contraseña" for field in app.text_input)
+    assert not app.dataframe
+    assert not app.metric
 
 
 @pytest.mark.parametrize("name", PAGES)

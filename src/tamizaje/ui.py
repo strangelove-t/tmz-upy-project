@@ -6,6 +6,7 @@ from pathlib import Path
 import streamlit as st
 
 from tamizaje.alerts import AlertConfigError
+from tamizaje.auth import verify_password
 from tamizaje.database import connect_database, initialize_database
 from tamizaje.models import EngineConfig, EngineConfigError, load_engine_config
 from tamizaje.questionnaire import QuestionnaireCatalogError, load_questionnaire
@@ -53,8 +54,44 @@ def question_texts() -> dict[str, str]:
     }
 
 
+def _configured_password_hash() -> str | None:
+    try:
+        return str(st.secrets["auth"]["password_hash"])
+    except (KeyError, FileNotFoundError, TypeError):
+        return None
+
+
+def require_authentication(*, show_logout: bool = True) -> None:
+    """Detiene la ejecución hasta validar la contraseña local única."""
+    if st.session_state.get("authenticated"):
+        if show_logout and st.sidebar.button("Cerrar sesión", key="logout"):
+            st.session_state.clear()
+            st.rerun()
+        return
+
+    password_hash = _configured_password_hash()
+    if password_hash is None:
+        st.error(
+            "La aplicación no tiene una contraseña local configurada. Ejecuta "
+            "scripts/set_local_password.py en esta computadora."
+        )
+        st.stop()
+
+    st.title("Tamizaje y Orientación UPY")
+    with st.form("login"):
+        password = st.text_input("Contraseña", type="password")
+        submitted = st.form_submit_button("Entrar", type="primary")
+    if submitted and verify_password(password, password_hash):
+        st.session_state["authenticated"] = True
+        st.rerun()
+    if submitted:
+        st.error("Contraseña incorrecta.")
+    st.stop()
+
+
 def require_context() -> tuple[EngineConfig, sqlite3.Connection]:
-    """Detiene la página si falta configuración o no hay importaciones."""
+    """Detiene la página sin sesión, sin configuración o sin importaciones."""
+    require_authentication()
     engine = load_engine()
     if engine is None:
         st.error("No fue posible cargar la configuración del motor.")
