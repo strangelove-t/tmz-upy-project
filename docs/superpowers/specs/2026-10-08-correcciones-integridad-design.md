@@ -10,8 +10,7 @@ sin alterar el modelo funcional del tamizaje ni perder seguimiento histórico.
 ### Casos recalculados sin alertas
 
 La tabla `cases` incorporará `is_active`, con valor inicial `1`. El campo
-representa si el caso sigue sustentado por las reglas activas, no el estado del
-seguimiento humano.
+representa si el caso sigue sustentado por las reglas activas, no el estado del seguimiento humano.
 
 Cuando un recálculo produzca cero alertas, el caso existente se conservará con
 sus notas y campos de seguimiento, pero pasará a `is_active = 0`. Las consultas

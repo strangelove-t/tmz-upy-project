@@ -1,6 +1,7 @@
 # Entornos y secretos
 .env
 .venv/
+.worktrees/
 
 # Python y herramientas
 __pycache__/
