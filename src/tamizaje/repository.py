@@ -64,7 +64,8 @@ def cases_frame(
         FROM cases c
         JOIN submissions su ON su.id = c.submission_id
         JOIN students st ON st.id = su.student_id
-        {"WHERE su.is_current = 1" if current_only else ""}
+        WHERE c.is_active = 1
+        {"AND su.is_current = 1" if current_only else ""}
         """,
         connection,
     )

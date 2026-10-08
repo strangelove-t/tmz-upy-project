@@ -92,3 +92,4 @@ def test_small_group_aggregates_are_hidden(synthetic_database) -> None:
     group.set_value("G-02").run()
 
     assert any("menos de 5 alumnos" in warning.value for warning in app.warning)
+    assert not app.dataframe

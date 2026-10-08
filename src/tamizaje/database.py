@@ -149,7 +149,8 @@ def initialize_database(connection: sqlite3.Connection) -> None:
             priority_alert_count INTEGER NOT NULL,
             total_alert_count INTEGER NOT NULL,
             scoring_version TEXT NOT NULL,
-            rule_version TEXT NOT NULL
+            rule_version TEXT NOT NULL,
+            is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1))
         );
 
         CREATE TABLE IF NOT EXISTS case_notes (
@@ -171,6 +172,14 @@ def initialize_database(connection: sqlite3.Connection) -> None:
         );
         """
     )
+    case_columns = {
+        row[1] for row in connection.execute("PRAGMA table_info(cases)").fetchall()
+    }
+    if "is_active" not in case_columns:
+        connection.execute(
+            "ALTER TABLE cases ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1 "
+            "CHECK (is_active IN (0, 1))"
+        )
 
 
 def _now() -> str:
@@ -298,6 +307,10 @@ def process_submission(
     )
     case = consolidate_case(alerts, area_results, alert_config)
     if case is None:
+        connection.execute(
+            "UPDATE cases SET is_active = 0 WHERE submission_id = ?",
+            (submission_id,),
+        )
         return
     computed = (
         case.case_level,
@@ -342,7 +355,8 @@ def process_submission(
                 case_level = ?, case_level_rank = ?, case_source = ?,
                 requested_contact = ?, initial_reason = ?, lowest_area_score = ?,
                 critical_area_code = ?, priority_alert_count = ?,
-                total_alert_count = ?, scoring_version = ?, rule_version = ?
+                total_alert_count = ?, scoring_version = ?, rule_version = ?,
+                is_active = 1
             WHERE id = ?
             """,
             (*computed, existing[0]),

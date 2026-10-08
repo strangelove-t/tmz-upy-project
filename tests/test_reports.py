@@ -1,9 +1,11 @@
 import csv
 from dataclasses import replace
+from datetime import UTC, datetime
 
 import pytest
 from synthetic_forms import project_config, synthetic_rows
 
+import tamizaje.reports as reports_module
 from tamizaje.database import connect_database, import_preview, initialize_database
 from tamizaje.importers import preview_csv
 from tamizaje.reports import (
@@ -127,3 +129,36 @@ def test_export_batch_writes_manifest_and_audit(imported, tmp_path) -> None:
         assert (output_dir / row["reporte_estudiante"]).is_file()
         assert (output_dir / row["expediente_asesor"]).is_file()
     assert connection.execute("SELECT COUNT(*) FROM exports").fetchone()[0] == 4
+
+
+def test_export_batch_neutralizes_spreadsheet_formulas(imported, tmp_path) -> None:
+    connection, engine, submission_id = imported
+    connection.execute(
+        "UPDATE students SET student_upn = ?, student_name = ? WHERE id = "
+        "(SELECT student_id FROM submissions WHERE id = ?)",
+        ("+SUM(1,1)", "=2+2", submission_id),
+    )
+
+    manifest = export_batch(connection, engine, tmp_path / "exports")
+
+    with manifest.open(encoding="utf-8-sig", newline="") as stream:
+        first = next(csv.DictReader(stream))
+    assert first["correo"] == "'+SUM(1,1)"
+    assert first["nombre"] == "'=2+2"
+
+
+def test_report_date_uses_configured_timezone(imported, monkeypatch) -> None:
+    connection, engine, submission_id = imported
+
+    class FixedDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            instant = cls(2026, 10, 8, 1, 0, tzinfo=UTC)
+            return instant.astimezone(tz) if tz else instant.replace(tzinfo=None)
+
+    monkeypatch.setattr(reports_module, "datetime", FixedDateTime)
+
+    data = build_report_data(
+        connection, submission_id, engine, load_template("student")
+    )
+    assert data["generated_at"] == "2026-10-07"

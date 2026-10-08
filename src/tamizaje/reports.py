@@ -6,7 +6,7 @@ import io
 import json
 import sqlite3
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from decimal import Decimal
 from html import escape
 from pathlib import Path
@@ -79,6 +79,10 @@ def report_filename(report_type: str, external_response_id: str) -> str:
     return f"{report_type}_{digest}.pdf"
 
 
+def _spreadsheet_safe(value: str) -> str:
+    return f"'{value}" if value.startswith(("=", "+", "-", "@", "\t", "\r")) else value
+
+
 def _area_lines(
     connection: sqlite3.Connection,
     submission_id: int,
@@ -148,7 +152,7 @@ def build_report_data(
         "student_name": row[0],
         "career": row[1],
         "group_name": row[2],
-        "generated_at": datetime.now(UTC).strftime("%Y-%m-%d"),
+        "generated_at": datetime.now(engine.report_timezone).strftime("%Y-%m-%d"),
         "scoring_version": engine.scoring.version,
         "areas": lines,
         "strengths": [
@@ -310,5 +314,5 @@ def export_batch(
                     load_template(report_type).template_version,
                 )
                 files.append(filename)
-            writer.writerow([email, name, *files])
+            writer.writerow([_spreadsheet_safe(email), _spreadsheet_safe(name), *files])
     return manifest_path

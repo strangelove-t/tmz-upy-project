@@ -72,16 +72,18 @@ plantillas de reportes (lista blanca de campos) están en `templates/`. Consulta
    registrar estado, contacto, responsable, próximo seguimiento, canalización,
    cierre y notas.
 4. **Grupos**: promedios y semáforos por carrera y grupo. Los grupos con menos
-   alumnos que `minimum_group_size` no muestran agregados.
+   alumnos que `minimum_group_size` no muestran agregados ni datos individuales.
 5. **Estudiantes**: expediente individual con áreas, recomendaciones, alertas,
    caso y respuestas (las sensibles quedan ocultas hasta activarlas). Si un
    alumno tiene varios envíos, aquí se elige el vigente.
 6. **Reportes**: vista previa y descarga del reporte del estudiante o del
    expediente sanitizado para asesor; generación por lote en `exports/` con
-   manifiesto `correo → archivo`.
+   manifiesto `correo → archivo`. La fecha usa `report_timezone` y las celdas
+   del manifiesto se protegen contra fórmulas de hojas de cálculo.
 
 Al cambiar la versión activa de scoring o de reglas, usa **Recalcular** en la
-página principal para aplicarla a los envíos ya guardados sin reimportar.
+página principal para aplicarla a los envíos ya guardados sin reimportar. Un
+caso sin alertas vigentes conserva su historial, pero sale de la priorización.
 
 ## Confidencialidad
 

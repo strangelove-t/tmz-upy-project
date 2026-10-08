@@ -15,3 +15,5 @@ alert_levels:
 contact_request_category: Solicitud de contacto
 # Agregados por grupo con menos estudiantes no se muestran.
 minimum_group_size: 5
+# Zona IANA para la fecha impresa en reportes.
+report_timezone: America/Mexico_City

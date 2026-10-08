@@ -1,4 +1,5 @@
 from decimal import Decimal
+from types import SimpleNamespace
 
 import pytest
 from test_import import synthetic_import_scoring_config, synthetic_mapped_preview
@@ -18,6 +19,7 @@ from tamizaje.database import (
     set_current_submission,
     update_case,
 )
+from tamizaje.repository import cases_frame
 from tamizaje.scoring import AreaResult
 from tamizaje.triage import TriageComponents, triage_key
 
@@ -216,6 +218,39 @@ def test_recalculation_preserves_follow_up_and_is_idempotent(tmp_path) -> None:
     ).fetchall() == [("Atención prioritaria", "En seguimiento", "Ana", 2)]
     assert connection.execute("SELECT COUNT(*) FROM alerts").fetchone()[0] == 2
     assert connection.execute("SELECT COUNT(*) FROM case_notes").fetchone()[0] == 1
+
+
+def test_recalculation_deactivates_and_reactivates_case(tmp_path) -> None:
+    active = alert_config(rule("R1", "Q01", "Yes", LEVELS[2]))
+    connection = import_with_alerts(tmp_path, active)
+    case_id = connection.execute("SELECT id FROM cases").fetchone()[0]
+    update_case(connection, case_id, case_status="En seguimiento", assigned_to="Ana")
+    add_case_note(connection, case_id, "Ana", "Nota sintética")
+
+    inactive = alert_config(rule("R1", "Q01", "No", LEVELS[2]))
+    recalculate_all(connection, synthetic_import_scoring_config(), inactive)
+
+    assert connection.execute(
+        "SELECT is_active, case_status, assigned_to FROM cases"
+    ).fetchone() == (0, "En seguimiento", "Ana")
+    assert connection.execute("SELECT COUNT(*) FROM case_notes").fetchone()[0] == 1
+    engine = SimpleNamespace(scoring=synthetic_import_scoring_config())
+    assert cases_frame(connection, engine).empty
+
+    recalculate_all(connection, synthetic_import_scoring_config(), active)
+    assert connection.execute(
+        "SELECT is_active, case_status, assigned_to FROM cases"
+    ).fetchone() == (1, "En seguimiento", "Ana")
+
+
+def test_initialize_database_migrates_existing_cases_table(tmp_path) -> None:
+    connection = connect_database(tmp_path / "legacy.db")
+    connection.execute("CREATE TABLE cases (id INTEGER PRIMARY KEY)")
+
+    initialize_database(connection)
+
+    columns = {row[1]: row for row in connection.execute("PRAGMA table_info(cases)")}
+    assert columns["is_active"][4] == "1"
 
 
 def test_update_case_tracks_contact_and_closure(tmp_path) -> None:

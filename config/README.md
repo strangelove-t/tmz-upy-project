@@ -57,8 +57,9 @@ Las alertas se evalúan por separado del scoring mediante:
 - `parameters.yaml`: `alert_levels` define el orden de severidad usado para el
   nivel del caso (`Atención prioritaria > Revisión manual > Seguimiento
   preventivo`); `contact_request_category` marca la fuente
-  `Solicitud del alumno`; `minimum_group_size` oculta agregados de grupos
-  pequeños.
+  `Solicitud del alumno`; `minimum_group_size` oculta agregados y datos
+  individuales de grupos pequeños; `report_timezone` controla la fecha local
+  impresa en los PDFs mediante un identificador IANA.
 - `recommendations.csv`: una recomendación por área y semáforo para la versión
   de scoring activa (27 en v0.2), con texto para el alumno y para el personal.
   Un área incompleta no recibe recomendación.

@@ -79,31 +79,31 @@ else:
     for column, (level, count) in zip(level_columns, by_level.items(), strict=True):
         column.metric(level, int(count))
 
-st.subheader("Estudiantes priorizados")
-students = (
-    group_results.pivot_table(
-        index=["submission_id", "student_name"],
-        columns="area_name",
-        values="normalized_score",
-        sort=False,
+    st.subheader("Estudiantes priorizados")
+    students = (
+        group_results.pivot_table(
+            index=["submission_id", "student_name"],
+            columns="area_name",
+            values="normalized_score",
+            sort=False,
+        )
+        .round(1)
+        .reset_index()
     )
-    .round(1)
-    .reset_index()
-)
-students = students.merge(
-    group_cases[["submission_id", "priority", "case_level", "case_status"]],
-    on="submission_id",
-    how="left",
-).sort_values(["priority", "student_name"], na_position="last")
-st.dataframe(
-    students.drop(columns="submission_id").rename(
-        columns={
-            "student_name": "Alumno",
-            "priority": "Prioridad",
-            "case_level": "Nivel",
-            "case_status": "Estado",
-        }
-    ),
-    hide_index=True,
-    width="stretch",
-)
+    students = students.merge(
+        group_cases[["submission_id", "priority", "case_level", "case_status"]],
+        on="submission_id",
+        how="left",
+    ).sort_values(["priority", "student_name"], na_position="last")
+    st.dataframe(
+        students.drop(columns="submission_id").rename(
+            columns={
+                "student_name": "Alumno",
+                "priority": "Prioridad",
+                "case_level": "Nivel",
+                "case_status": "Estado",
+            }
+        ),
+        hide_index=True,
+        width="stretch",
+    )

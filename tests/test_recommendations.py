@@ -1,3 +1,4 @@
+import shutil
 from decimal import Decimal
 from pathlib import Path
 
@@ -6,6 +7,7 @@ from synthetic_forms import project_config, synthetic_rows
 
 from tamizaje.database import connect_database, import_preview, initialize_database
 from tamizaje.importers import preview_csv
+from tamizaje.models import EngineConfigError, load_engine_config
 from tamizaje.recommendations import (
     RecommendationConfigError,
     load_recommendations,
@@ -30,6 +32,25 @@ def test_project_catalog_covers_every_area_and_light() -> None:
     )
 
     assert len(recommendations) == 27
+
+
+def test_project_config_uses_mexico_timezone() -> None:
+    assert str(load_engine_config(CONFIG_DIR).report_timezone) == "America/Mexico_City"
+
+
+def test_engine_config_rejects_unknown_report_timezone(tmp_path) -> None:
+    config_dir = tmp_path / "config"
+    shutil.copytree(CONFIG_DIR, config_dir)
+    parameters = config_dir / "parameters.yaml"
+    parameters.write_text(
+        parameters.read_text(encoding="utf-8").replace(
+            "America/Mexico_City", "Invalid/Timezone"
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(EngineConfigError, match="parameters.yaml"):
+        load_engine_config(config_dir)
 
 
 def test_recommendation_matches_area_and_light() -> None:
