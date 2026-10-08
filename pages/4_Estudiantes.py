@@ -16,6 +16,7 @@ from tamizaje.ui import (
     LIGHT_COLORS,
     LIGHT_ORDER,
     NO_SUBMISSIONS,
+    format_date,
     page_header,
     question_texts,
     require_context,
@@ -68,18 +69,19 @@ with st.container(border=True):
 
     if len(submissions) > 1:
         st.warning(
-            f"Este alumno tiene {len(submissions)} envíos. Confirma cuál es el "
-            "vigente: sólo ese aparece en Casos, Grupos y Reportes."
+            f"Este alumno respondió el cuestionario {len(submissions)} veces. "
+            "Elige cuál respuesta es la válida: sólo esa aparece en Casos, "
+            "Grupos y Reportes."
         )
         submission_labels = {
             int(row.submission_id): (
-                f"Envío del {row.submitted_at}"
-                + (" — vigente" if row.is_current else "")
+                f"Respuesta del {format_date(row.submitted_at)}"
+                + (" — la válida" if row.is_current else "")
             )
             for row in submissions.itertuples()
         }
         submission_id = st.radio(
-            "Historial de envíos",
+            "Respuestas recibidas",
             list(submission_labels),
             format_func=submission_labels.get,
         )
@@ -88,7 +90,7 @@ with st.container(border=True):
                 submissions["submission_id"] == submission_id, "is_current"
             ].iloc[0]
         )
-        if not is_current and st.button("Marcar este envío como vigente"):
+        if not is_current and st.button("Usar esta respuesta como la válida"):
             set_current_submission(connection, submission_id)
             st.rerun()
     else:
@@ -113,7 +115,7 @@ results_tab, follow_up_tab, responses_tab = st.tabs(
 
 with results_tab:
     if results.empty:
-        st.info("Este envío no tiene resultados de la versión activa de scoring.")
+        st.info("Aún no hay resultados para esta respuesta.")
     else:
         chart = results.assign(
             score=results["normalized_score"].fillna(0).round(1),
@@ -183,11 +185,11 @@ with results_tab:
 
 with follow_up_tab:
     if case is None:
-        st.info("Este envío no generó alertas; no hay caso de seguimiento.")
+        st.info("Esta respuesta no generó alertas; no hay caso de seguimiento.")
     else:
         if not case.get("is_active", 1):
             st.caption(
-                "Caso inactivo tras un recálculo; se conserva para auditoría."
+                "Este caso ya no tiene alertas vigentes; se conserva como historial."
             )
         status_row(
             {
@@ -199,7 +201,7 @@ with follow_up_tab:
         )
         st.caption(
             f"Fuente: {case['case_source']} · próximo seguimiento: "
-            f"{case['next_follow_up_at'] or '—'}"
+            f"{format_date(case['next_follow_up_at'])}"
         )
         st.page_link(
             "pages/2_Casos.py",
@@ -225,7 +227,9 @@ with follow_up_tab:
         else:
             for note in notes.itertuples():
                 st.markdown(
-                    f"**{note.author}** · {note.created_at[:16]}  \n{note.note}"
+                    f"**{note.author}** · "
+                    f"{format_date(note.created_at, engine.report_timezone)}"
+                    f"  \n{note.note}"
                 )
 
 with responses_tab:

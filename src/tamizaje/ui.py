@@ -5,6 +5,7 @@ import signal
 import sqlite3
 import threading
 from dataclasses import dataclass
+from datetime import date, datetime
 from pathlib import Path
 
 import streamlit as st
@@ -29,7 +30,7 @@ LIGHT_COLORS = {
 }
 LIGHT_ORDER = ["Verde", "Amarillo", "Rojo", "Incompleta"]
 NO_SUBMISSIONS = (
-    "Aún no hay envíos procesados. Importa una exportación desde Administración."
+    "Aún no hay respuestas cargadas. Se importan desde Administración."
 )
 DISCLAIMER = (
     "Este instrumento es de tamizaje y orientación; no constituye un "
@@ -81,6 +82,25 @@ def apply_theme() -> None:
         """,
         unsafe_allow_html=True,
     )
+
+
+def format_date(value: str | None, timezone=None) -> str:
+    """Fecha ISO (o fecha-hora UTC) en formato dd/mm/aaaa; vacío como "—"."""
+    if not value:
+        return "—"
+    try:
+        if len(value) <= 10:
+            return date.fromisoformat(value).strftime("%d/%m/%Y")
+        moment = datetime.fromisoformat(value)
+        if timezone is not None and moment.tzinfo is not None:
+            moment = moment.astimezone(timezone)
+        return moment.strftime("%d/%m/%Y %H:%M")
+    except ValueError:
+        return value
+
+
+def yes_no(value: object) -> str:
+    return "Sí" if bool(value) else "No"
 
 
 def status_row(items: dict[str, str]) -> None:

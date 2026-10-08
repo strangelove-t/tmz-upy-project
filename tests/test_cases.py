@@ -21,7 +21,7 @@ from tamizaje.database import (
 )
 from tamizaje.repository import cases_frame
 from tamizaje.scoring import AreaResult
-from tamizaje.triage import TriageComponents, triage_key
+from tamizaje.triage import TriageComponents, explain_priority, triage_key
 
 LEVELS = ("Atención prioritaria", "Revisión manual", "Seguimiento preventivo")
 
@@ -315,3 +315,28 @@ def test_set_current_submission_resolves_duplicates(tmp_path) -> None:
     assert connection.execute(
         "SELECT id, is_current FROM submissions ORDER BY id"
     ).fetchall() == [(first_id, 0), (second_id, 1)]
+
+
+def test_priority_explanation_uses_plain_language() -> None:
+    text = explain_priority(
+        components(requested_contact=True, priority_alert_count=2, total_alert_count=3),
+        "Atención prioritaria",
+        "Motivación y elección de carrera",
+    )
+
+    assert text == (
+        "Pidió que Orientación se ponga en contacto. "
+        "Nivel: Atención prioritaria. "
+        "2 de sus 3 alertas son de atención prioritaria. "
+        "Área con puntaje más bajo: Motivación y elección de carrera (50 de 100)."
+    )
+
+
+def test_priority_explanation_without_contact_or_area() -> None:
+    text = explain_priority(
+        components(lowest_area_score=None, priority_alert_count=0, total_alert_count=1),
+        "Seguimiento preventivo",
+        None,
+    )
+
+    assert text == "Nivel: Seguimiento preventivo. Tiene 1 alerta."

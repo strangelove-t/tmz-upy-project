@@ -27,14 +27,28 @@ def triage_key(case: TriageComponents) -> tuple:
     )
 
 
-def explain_priority(case: TriageComponents, case_level: str) -> str:
-    """Texto breve con los componentes que determinan la posición del caso."""
+def explain_priority(
+    case: TriageComponents, case_level: str, critical_area_name: str | None = None
+) -> str:
+    """Explica en lenguaje cotidiano por qué el caso ocupa su posición."""
     parts = []
     if case.requested_contact:
-        parts.append("solicitó contacto")
-    parts.append(f"nivel {case_level}")
-    if case.lowest_area_score is not None:
-        parts.append(f"área más baja {case.lowest_area_score:.1f}")
-    parts.append(f"{case.priority_alert_count} alertas prioritarias")
-    parts.append(f"{case.total_alert_count} alertas en total")
-    return " · ".join(parts)
+        parts.append("Pidió que Orientación se ponga en contacto.")
+    parts.append(f"Nivel: {case_level}.")
+    total = case.total_alert_count
+    if case.priority_alert_count:
+        if total == 1:
+            parts.append("Su alerta es de atención prioritaria.")
+        else:
+            parts.append(
+                f"{case.priority_alert_count} de sus {total} alertas son de "
+                "atención prioritaria."
+            )
+    else:
+        parts.append(f"Tiene {total} alerta{'s' if total != 1 else ''}.")
+    if case.lowest_area_score is not None and critical_area_name:
+        parts.append(
+            f"Área con puntaje más bajo: {critical_area_name} "
+            f"({case.lowest_area_score:.0f} de 100)."
+        )
+    return " ".join(parts)

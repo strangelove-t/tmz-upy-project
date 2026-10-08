@@ -10,7 +10,13 @@ from tamizaje.repository import (
     last_import,
     operational_counts,
 )
-from tamizaje.ui import DISCLAIMER, NO_SUBMISSIONS, page_header, require_context
+from tamizaje.ui import (
+    DISCLAIMER,
+    NO_SUBMISSIONS,
+    format_date,
+    page_header,
+    require_context,
+)
 
 page_header("Inicio", "Qué requiere atención hoy y cuál es el siguiente paso.")
 
@@ -30,8 +36,7 @@ imported_at = datetime.fromisoformat(latest["imported_at"]).astimezone(
     engine.report_timezone
 )
 st.caption(
-    f"{today:%d/%m/%Y} · última importación {imported_at:%d/%m/%Y %H:%M} · "
-    f"scoring v{latest['scoring_version']}"
+    f"Hoy es {today:%d/%m/%Y} · respuestas cargadas el {imported_at:%d/%m/%Y}"
 )
 
 metrics = st.columns(4)
@@ -61,7 +66,7 @@ else:
     st.dataframe(
         upcoming.assign(
             requested=upcoming["requested_contact"].map({True: "Sí", False: "No"}),
-            next_follow_up_at=upcoming["next_follow_up_at"].fillna("—"),
+            next_follow_up_at=upcoming["next_follow_up_at"].map(format_date),
         ).rename(
             columns={
                 "priority": "Prioridad",

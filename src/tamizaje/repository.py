@@ -93,9 +93,12 @@ def cases_frame(
         )
         for row in frame.itertuples()
     ]
+    names = {area.area_code: area.area_name for area in engine.scoring.areas}
     frame["priority_reason"] = [
-        explain_priority(component, level)
-        for component, level in zip(components, frame["case_level"], strict=True)
+        explain_priority(component, level, names.get(area_code))
+        for component, level, area_code in zip(
+            components, frame["case_level"], frame["critical_area_code"], strict=True
+        )
     ]
     order = sorted(range(len(components)), key=lambda i: triage_key(components[i]))
     frame = frame.iloc[order].reset_index(drop=True)

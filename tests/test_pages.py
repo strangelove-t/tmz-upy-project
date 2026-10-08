@@ -94,7 +94,8 @@ def test_cases_page_puts_contact_request_first(synthetic_database) -> None:
     app = run_page("2_Casos.py")
 
     table = app.dataframe[0].value
-    assert table.iloc[0]["Pidió contacto"]
+    assert table.iloc[0]["Pidió contacto"] == "Sí"
+    assert set(table["Pidió contacto"]) <= {"Sí", "No"}
     assert table["Prioridad"].tolist() == list(range(1, len(table) + 1))
 
 
@@ -335,3 +336,48 @@ def test_administration_real_import_requires_reinforced_confirmation(
     ]
     connection.close()
     assert lines == [16, 17]
+
+
+def test_cases_open_by_clicking_a_row(synthetic_database) -> None:
+    app = run_page("2_Casos.py")
+    table = app.dataframe[0].value
+    assert any(header.value.startswith("#1 · ") for header in app.subheader)
+
+    app.session_state["cases_table"] = {
+        "selection": {"rows": [2], "columns": [], "cells": []}
+    }
+    app.run()
+
+    expected = f"#3 · {table.iloc[2]['Alumno']}"
+    assert any(header.value == expected for header in app.subheader)
+    assert not any(box.label == "Caso" for box in app.selectbox)
+
+
+@pytest.mark.parametrize("name", DATA_PAGES)
+def test_daily_pages_avoid_technical_jargon(name, synthetic_database) -> None:
+    app = run_page(name)
+    texts = " ".join(
+        element.value
+        for kind in ("title", "caption", "markdown", "info", "warning", "subheader")
+        for element in getattr(app, kind)
+        if isinstance(element.value, str)
+    ).casefold()
+
+    for jargon in ("scoring", "envío", "vigente", "versión", "huella", "none"):
+        assert jargon not in texts, jargon
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("2026-10-06", "06/10/2026"),
+        ("2026-10-06T22:30:00+00:00", "06/10/2026 16:30"),
+        (None, "—"),
+        ("", "—"),
+        ("texto-no-fecha", "texto-no-fecha"),
+    ],
+)
+def test_format_date_uses_day_month_year(value, expected) -> None:
+    _, engine = project_config()
+
+    assert ui.format_date(value, engine.report_timezone) == expected

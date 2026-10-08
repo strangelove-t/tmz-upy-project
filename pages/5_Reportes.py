@@ -126,7 +126,8 @@ with batch_tab:
     )
     st.write(
         f"Genera el reporte del alumno y el expediente para asesor de "
-        f"{len(students)} envíos vigentes, más un manifiesto correo → archivo."
+        f"{len(students)} alumnos, más una lista de qué archivo corresponde a "
+        "cada correo."
     )
     confirm = st.checkbox("Entiendo que los archivos generados son confidenciales.")
     if st.button("Generar todos los reportes", disabled=not confirm):

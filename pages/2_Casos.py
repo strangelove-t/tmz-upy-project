@@ -14,15 +14,16 @@ from tamizaje.repository import (
 from tamizaje.ui import (
     DISCLAIMER,
     area_names,
+    format_date,
     page_header,
     require_context,
     status_row,
+    yes_no,
 )
 
 page_header(
     "Casos",
-    "Ordenados por solicitud de contacto, nivel, área más baja, alertas "
-    "prioritarias, total de alertas y antigüedad.",
+    "Primero aparecen quienes pidieron contacto y los casos más urgentes.",
 )
 
 # Los filtros conservan su valor al cambiar de página durante la sesión.
@@ -116,9 +117,11 @@ if visible.empty:
     st.stop()
 
 st.caption(f"{len(visible)} de {len(cases)} casos")
-st.dataframe(
+st.caption("Haz clic en una fila para abrir el caso.")
+selection = st.dataframe(
     visible.assign(
-        next_follow_up_at=visible["next_follow_up_at"].fillna("—"),
+        requested_contact=visible["requested_contact"].map(yes_no),
+        next_follow_up_at=visible["next_follow_up_at"].map(format_date),
         assigned_to=visible["assigned_to"].fillna("—"),
     ).rename(
         columns={
@@ -145,20 +148,17 @@ st.dataframe(
     ],
     hide_index=True,
     width="stretch",
-    column_config={
-        "Prioridad": st.column_config.NumberColumn(width="small"),
-        "Pidió contacto": st.column_config.CheckboxColumn(width="small"),
-    },
+    on_select="rerun",
+    selection_mode="single-row",
+    key="cases_table",
+    column_config={"Prioridad": st.column_config.NumberColumn(width="small")},
 )
-st.caption("El motivo de cada posición aparece al seleccionar el caso.")
 
-st.header("Caso seleccionado")
-labels = {
-    int(row.case_id): f"#{row.priority} · {row.student_name} · {row.case_level}"
-    for row in visible.itertuples()
-}
-case_id = st.selectbox("Caso", list(labels), format_func=labels.get)
-case = visible[visible["case_id"] == case_id].iloc[0]
+# Sin selección (o si los filtros cambiaron la tabla) se abre el primer caso.
+selected_rows = [row for row in selection.selection.rows if row < len(visible)]
+case = visible.iloc[selected_rows[0] if selected_rows else 0]
+case_id = int(case["case_id"])
+st.subheader(f"#{case['priority']} · {case['student_name']}")
 submission_id = int(case["submission_id"])
 alerts = submission_alerts(connection, submission_id, engine.alerts.version)
 critical_area = area_names(engine).get(case["critical_area_code"], "—")
@@ -178,7 +178,7 @@ reason_tab, follow_up_tab, notes_tab = st.tabs(
 )
 
 with reason_tab:
-    st.markdown(f"**Por qué aparece aquí:** {case['priority_reason']}")
+    st.markdown(f"**Por qué aparece en esta posición:** {case['priority_reason']}")
     st.markdown(f"**Fuente:** {case['case_source']}")
     if (alerts["alert_level"] == "Revisión manual").any():
         st.warning(
@@ -261,7 +261,10 @@ with notes_tab:
     if notes.empty:
         st.caption("Aún no hay notas para este caso.")
     for note_row in notes.itertuples():
-        st.markdown(f"**{note_row.author}** · {note_row.created_at[:16]}")
+        st.markdown(
+            f"**{note_row.author}** · "
+            f"{format_date(note_row.created_at, engine.report_timezone)}"
+        )
         st.write(note_row.note)
 
 connection.close()

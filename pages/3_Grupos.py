@@ -40,7 +40,7 @@ coverage[1].metric(
     "—" if protected else int((group_cases["case_status"] != CLOSED_STATUS).sum()),
 )
 coverage[2].metric(
-    "Áreas completas",
+    "Resultados completos",
     "—"
     if protected
     else f"{group_results['is_complete'].mean() * 100:.0f} %",
