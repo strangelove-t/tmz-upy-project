@@ -24,7 +24,12 @@ identidad dentro de la aplicación instalada.
 1. Doble clic en `run_windows.bat` (o ejecutarlo en PowerShell).
 2. La consola debe anunciar `http://127.0.0.1:8501`. Abre esa dirección en el
    navegador.
-3. Escribe la contraseña y pulsa **Entrar**.
+3. Escribe la contraseña y pulsa **Entrar**. La aplicación abre en **Inicio**,
+   que muestra qué casos requieren atención.
+
+La importación y el recálculo están en **Administración**, fuera del trabajo
+diario. La importación real pide la autorización firmada, una casilla y
+escribir `IMPORTAR`; el modo de prueba nunca guarda datos.
 
 La aplicación sólo escucha en `127.0.0.1`: no acepta conexiones desde otras
 computadoras. Si la consola muestra una dirección de red (`Network URL`) en

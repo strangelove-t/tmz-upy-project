@@ -63,7 +63,10 @@ Marcados por el equipo de desarrollo con evidencia de comandos.
   `docs/OPERACION_LOCAL.md`; falta repetirlo en PowerShell).
 - PDF sintéticos de alumno y asesor renderizados con `pdftoppm` e
   inspeccionados; los temporales se eliminaron.
-- `pytest`: 158 aprobadas · `ruff check .` sin errores · `compileall` sin
+- QA visual y de accesibilidad con datos sintéticos: ver
+  `docs/checklists/QA_UX_UI.md`.
+- `pytest`: 158 aprobadas al cerrar el plan de acceso (177 tras el bloque
+  UX/UI) · `ruff check .` sin errores · `compileall` sin
   errores · `git diff --check` sin errores.
 
 ## B. Revisión institucional (Orientación y Tutorías)
@@ -75,7 +78,8 @@ Sólo la maestra marca estas casillas después de revisar cada contenido.
 - [ ] Recursos y leyenda de `templates/student_report.json`.
 - [ ] Áreas del expediente del asesor (`templates/advisor_report.json`).
 - [ ] Umbral `minimum_group_size` de `config/parameters.yaml`.
-- [ ] Aceptación del recorrido de la interfaz.
+- [ ] Aceptación del recorrido de la interfaz (sección B de
+      `docs/checklists/QA_UX_UI.md`).
 
 ## C. Autorización
 

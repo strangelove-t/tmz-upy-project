@@ -89,28 +89,33 @@ plantillas de reportes (lista blanca de campos) están en `templates/`. Consulta
 
 ## Guía breve de uso
 
-1. **Página principal**: selecciona el CSV exportado de Forms, revisa conteos y
-   mapeo, desactiva el modo seguro, confirma la autorización e importa. El
-   scoring, las alertas, las recomendaciones y los casos se calculan en la
-   misma transacción.
-2. **Resumen**: alumnos procesados, casos por nivel, solicitudes de contacto y
-   distribución de semáforos por área.
-3. **Casos**: lista priorizada con filtros y búsqueda. Selecciona un caso para
-   registrar estado, contacto, responsable, próximo seguimiento, canalización,
-   cierre y notas.
+Después de escribir la contraseña, el menú lateral muestra seis páginas,
+ordenadas por frecuencia de uso:
+
+1. **Inicio**: casos prioritarios, solicitudes de contacto, seguimientos
+   vencidos, los siguientes cinco casos por atender y las áreas con más
+   necesidad. Es el punto de partida diario.
+2. **Casos**: lista priorizada con búsqueda y filtros (se conservan durante la
+   sesión). Al elegir un caso: pestañas *Motivo y alertas*, *Seguimiento*
+   (contacto, estado, canalización y cierre) y *Notas*.
+3. **Estudiantes**: expediente con pestañas *Resultados* (nueve áreas,
+   fortalezas, oportunidades y recomendaciones), *Seguimiento* y *Respuestas*
+   (las sensibles quedan ocultas hasta activarlas). Si hay varios envíos, aquí
+   se elige el vigente. **Ver reportes del alumno** abre Reportes con el mismo
+   alumno.
 4. **Grupos**: promedios y semáforos por carrera y grupo. Los grupos con menos
-   alumnos que `minimum_group_size` no muestran agregados ni datos individuales.
-5. **Estudiantes**: expediente individual con áreas, recomendaciones, alertas,
-   caso y respuestas (las sensibles quedan ocultas hasta activarlas). Si un
-   alumno tiene varios envíos, aquí se elige el vigente.
-6. **Reportes**: vista previa y descarga del reporte del estudiante o del
-   expediente sanitizado para asesor; generación por lote en `exports/` con
+   alumnos que `minimum_group_size` no muestran agregados ni la lista.
+5. **Reportes**: pestaña *Individual* con vista previa y descarga; pestaña
+   *Por lote* con advertencia de confidencialidad, generación en `exports/` y
    manifiesto `correo → archivo`. La fecha usa `report_timezone` y las celdas
    del manifiesto se protegen contra fórmulas de hojas de cálculo.
-
-Al cambiar la versión activa de scoring o de reglas, usa **Recalcular** en la
-página principal para aplicarla a los envíos ya guardados sin reimportar. Un
-caso sin alertas vigentes conserva su historial, pero sale de la priorización.
+6. **Administración**: importación en cuatro pasos (Archivo, Validación,
+   Resumen, Confirmación). El modo de prueba está activo por defecto y nunca
+   guarda datos; la importación real exige la autorización firmada, una casilla
+   y escribir `IMPORTAR`. Aquí también está **Recalcular resultados**, que
+   aplica una versión nueva de scoring o de reglas a los envíos guardados sin
+   reimportar. Un caso sin alertas vigentes conserva su historial, pero sale de
+   la priorización.
 
 ## Confidencialidad
 
