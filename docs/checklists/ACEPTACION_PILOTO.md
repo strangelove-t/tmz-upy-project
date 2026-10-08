@@ -16,13 +16,13 @@ Marcados por el equipo de desarrollo con evidencia de comandos.
 
 ### Acceso
 
-- [ ] La aplicación sólo escucha en `127.0.0.1:8501`.
-- [ ] Sin contraseña configurada, la aplicación queda bloqueada.
-- [ ] Una contraseña incorrecta se rechaza.
-- [ ] La contraseña correcta da acceso.
-- [ ] **Cerrar sesión** vuelve a pedir la contraseña.
-- [ ] Ninguna página consulta la base antes de autenticar.
-- [ ] `.streamlit/secrets.toml` está ignorado y no hay contraseña en Git.
+- [x] La aplicación sólo escucha en `127.0.0.1:8501`.
+- [x] Sin contraseña configurada, la aplicación queda bloqueada.
+- [x] Una contraseña incorrecta se rechaza.
+- [x] La contraseña correcta da acceso.
+- [x] **Cerrar sesión** vuelve a pedir la contraseña.
+- [x] Ninguna página consulta la base antes de autenticar.
+- [x] `.streamlit/secrets.toml` está ignorado y no hay contraseña en Git.
 
 ### Piloto con las líneas 2–15
 
@@ -31,18 +31,40 @@ Marcados por el equipo de desarrollo con evidencia de comandos.
 - [ ] Scoring: 126 resultados de área calculados.
 - [ ] Alertas y casos calculados sin errores.
 - [ ] Recálculo de los 14 envíos sin errores.
-- [ ] Umbral de confidencialidad de grupos verificado (pruebas automatizadas).
+- [x] Umbral de confidencialidad de grupos verificado (pruebas automatizadas).
 - [ ] 28 PDF generados y estructuralmente válidos.
 - [ ] La base y los PDF temporales se eliminaron al terminar.
 - [ ] La salida de consola no contiene datos personales.
 
 ### Operación
 
-- [ ] Respaldo de la base probado con una base sintética.
-- [ ] Restauración probada con una base sintética.
-- [ ] Suite automatizada, Ruff y compilación aprobados.
-- [ ] `git ls-files data exports .streamlit/secrets.toml` sólo muestra los
+- [x] Respaldo de la base probado con una base sintética.
+- [x] Restauración probada con una base sintética.
+- [x] Suite automatizada, Ruff y compilación aprobados.
+- [x] `git ls-files data exports .streamlit/secrets.toml` sólo muestra los
       `.gitkeep`.
+
+### Evidencia técnica (2026-10-08, rama `feature/local-access-pilot`)
+
+- Streamlit anunció `URL: http://127.0.0.1:8501`; `ss -ltn` mostró sólo
+  `127.0.0.1:8501` y la IP de red del equipo no respondió.
+- Acceso: `tests/test_auth.py`, `tests/test_app.py` y
+  `test_pages_require_authentication_before_reading` (seis páginas).
+- `git check-ignore .streamlit/secrets.toml` lo reporta como ignorado;
+  `git ls-files data exports .streamlit/secrets.toml` sólo lista
+  `data/.gitkeep` y `exports/.gitkeep`.
+- `scripts/run_acceptance.py` con un CSV **sintético** de 17 registros:
+  líneas 2–15, 14 envíos, 126 resultados de área (126 completos), 14
+  recalculados, 28 PDF validados, temporales eliminados, `APROBADO`, sin datos
+  personales en la consola. Las casillas del piloto quedan pendientes hasta
+  ejecutarlo con el archivo local en la computadora autorizada.
+- Respaldo y restauración: copia, sustitución y `PRAGMA integrity_check = ok`
+  sobre una base sintética (equivalente Linux de los comandos de
+  `docs/OPERACION_LOCAL.md`; falta repetirlo en PowerShell).
+- PDF sintéticos de alumno y asesor renderizados con `pdftoppm` e
+  inspeccionados; los temporales se eliminaron.
+- `pytest`: 158 aprobadas · `ruff check .` sin errores · `compileall` sin
+  errores · `git diff --check` sin errores.
 
 ## B. Revisión institucional (Orientación y Tutorías)
 
