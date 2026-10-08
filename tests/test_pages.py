@@ -160,3 +160,46 @@ def test_operational_counts_follow_open_cases(synthetic_database) -> None:
         "pending_followups": 1,
         "students": 6,
     }
+
+
+def test_cases_has_clear_filters_and_work_sections(synthetic_database) -> None:
+    app = run_page("2_Casos.py")
+
+    assert any(expander.label == "Filtrar casos" for expander in app.expander)
+    assert {tab.label for tab in app.tabs} >= {
+        "Motivo y alertas",
+        "Seguimiento",
+        "Notas",
+    }
+    assert any(button.label == "Guardar seguimiento" for button in app.button)
+
+
+def test_cases_explains_empty_filter_results(synthetic_database) -> None:
+    app = run_page("2_Casos.py")
+    search = next(field for field in app.text_input if "Buscar" in field.label)
+    search.input("nadie-coincide").run()
+
+    assert any("Sin resultados para estos filtros" in info.value for info in app.info)
+    assert not app.tabs
+
+
+def test_cases_confirms_saved_follow_up(synthetic_database) -> None:
+    app = run_page("2_Casos.py")
+    save = next(b for b in app.button if b.label == "Guardar seguimiento")
+    save.click()
+    app.run()
+
+    assert any("Seguimiento actualizado" in item.value for item in app.success)
+
+
+def test_cases_filters_persist_across_pages(synthetic_database) -> None:
+    app = run_page("2_Casos.py")
+    next(field for field in app.text_input if "Buscar" in field.label).input(
+        "nadie-coincide"
+    ).run()
+
+    app.switch_page("pages/1_Resumen.py").run()
+    app.switch_page("pages/2_Casos.py").run()
+
+    search = next(field for field in app.text_input if "Buscar" in field.label)
+    assert search.value == "nadie-coincide"

@@ -5,19 +5,41 @@ import streamlit as st
 from tamizaje.cases import CASE_STATUSES, CONTACT_STATUSES
 from tamizaje.database import add_case_note, update_case
 from tamizaje.normalization import normalize_text
-from tamizaje.repository import case_notes, cases_frame, submission_alerts
-from tamizaje.ui import DISCLAIMER, area_names, require_context
-
-st.title("Casos")
-st.caption(
-    "Orden predeterminado: solicitud de contacto, nivel, menor área, alertas "
-    "prioritarias, total de alertas y antigüedad. " + DISCLAIMER
+from tamizaje.repository import (
+    CLOSED_STATUS,
+    case_notes,
+    cases_frame,
+    submission_alerts,
 )
+from tamizaje.ui import DISCLAIMER, area_names, page_header, require_context
+
+page_header(
+    "Casos",
+    "Ordenados por solicitud de contacto, nivel, área más baja, alertas "
+    "prioritarias, total de alertas y antigüedad.",
+)
+
+# Los filtros conservan su valor al cambiar de página durante la sesión.
+OPEN_STATUSES = [status for status in CASE_STATUSES if status != CLOSED_STATUS]
+FILTER_DEFAULTS = {
+    "cases_search": "",
+    "cases_careers": [],
+    "cases_groups": [],
+    "cases_levels": [],
+    "cases_categories": [],
+    "cases_statuses": OPEN_STATUSES,
+    "cases_assignees": [],
+}
+# Streamlit borra el estado de un widget al salir de su página; por eso el
+# valor se respalda en una clave propia y se restaura al volver.
+for key, default in FILTER_DEFAULTS.items():
+    if key not in st.session_state:
+        st.session_state[key] = st.session_state.get(f"saved_{key}", default)
 
 engine, connection = require_context()
 cases = cases_frame(connection, engine)
 if cases.empty:
-    st.info("No hay casos registrados.")
+    st.info("No hay casos registrados. Los casos se crean al importar respuestas.")
     connection.close()
     st.stop()
 
@@ -26,20 +48,35 @@ def options(column: str) -> list[str]:
     return sorted(value for value in cases[column].dropna().unique() if value)
 
 
-filters = st.columns(3)
-careers = filters[0].multiselect("Carrera", options("career"))
-groups = filters[1].multiselect("Grupo", options("group_name"))
-levels = filters[2].multiselect("Nivel", list(engine.alerts.levels))
-filters = st.columns(3)
-categories = filters[0].multiselect(
-    "Categoría",
-    sorted({rule.alert_category for rule in engine.alerts.rules}),
-)
-statuses = filters[1].multiselect(
-    "Estado", list(CASE_STATUSES), default=[s for s in CASE_STATUSES if s != "Cerrado"]
-)
-assignees = filters[2].multiselect("Responsable", options("assigned_to"))
-search = normalize_text(st.text_input("Buscar por nombre o correo")).casefold()
+search = normalize_text(
+    st.text_input(
+        "Buscar por nombre o correo",
+        key="cases_search",
+        placeholder="Escribe al menos una parte del nombre o correo",
+    )
+).casefold()
+with st.expander("Filtrar casos", expanded=False):
+    columns = st.columns(3)
+    careers = columns[0].multiselect("Carrera", options("career"), key="cases_careers")
+    groups = columns[1].multiselect("Grupo", options("group_name"), key="cases_groups")
+    levels = columns[2].multiselect(
+        "Nivel", list(engine.alerts.levels), key="cases_levels"
+    )
+    columns = st.columns(3)
+    categories = columns[0].multiselect(
+        "Categoría",
+        sorted({rule.alert_category for rule in engine.alerts.rules}),
+        key="cases_categories",
+    )
+    statuses = columns[1].multiselect(
+        "Estado", list(CASE_STATUSES), key="cases_statuses"
+    )
+    assignees = columns[2].multiselect(
+        "Responsable", options("assigned_to"), key="cases_assignees"
+    )
+
+for key in FILTER_DEFAULTS:
+    st.session_state[f"saved_{key}"] = st.session_state[key]
 
 visible = cases
 if careers:
@@ -64,43 +101,39 @@ if search:
         | visible["student_upn"].str.casefold().str.contains(search, regex=False)
     ]
 
-names = area_names(engine)
-table = visible.assign(
-    critical_area=visible["critical_area_code"].map(names),
-).rename(
-    columns={
-        "priority": "Prioridad",
-        "student_name": "Alumno",
-        "career": "Carrera",
-        "group_name": "Grupo",
-        "case_level": "Nivel",
-        "requested_contact": "Solicitó contacto",
-        "lowest_area_score": "Área más baja",
-        "critical_area": "Área crítica",
-        "priority_alert_count": "Alertas prioritarias",
-        "total_alert_count": "Alertas",
-        "case_status": "Estado",
-        "contact_status": "Contacto",
-        "assigned_to": "Responsable",
-        "priority_reason": "Por qué aparece aquí",
-    }
-)
+if visible.empty:
+    st.info(
+        "Sin resultados para estos filtros. Cambia la búsqueda o abre "
+        "«Filtrar casos» para ampliar los criterios."
+    )
+    connection.close()
+    st.stop()
+
 st.caption(f"{len(visible)} de {len(cases)} casos")
 st.dataframe(
-    table[
+    visible.assign(
+        requested=visible["requested_contact"],
+    ).rename(
+        columns={
+            "priority": "Prioridad",
+            "student_name": "Alumno",
+            "group_name": "Grupo",
+            "case_level": "Nivel",
+            "requested": "Solicitó contacto",
+            "case_status": "Estado",
+            "next_follow_up_at": "Próximo seguimiento",
+            "assigned_to": "Responsable",
+            "priority_reason": "Por qué aparece aquí",
+        }
+    )[
         [
             "Prioridad",
             "Alumno",
-            "Carrera",
             "Grupo",
             "Nivel",
             "Solicitó contacto",
-            "Área más baja",
-            "Área crítica",
-            "Alertas prioritarias",
-            "Alertas",
             "Estado",
-            "Contacto",
+            "Próximo seguimiento",
             "Responsable",
             "Por qué aparece aquí",
         ]
@@ -108,101 +141,125 @@ st.dataframe(
     hide_index=True,
     width="stretch",
     column_config={
-        "Área más baja": st.column_config.NumberColumn(format="%.1f"),
+        "Prioridad": st.column_config.NumberColumn(width="small"),
+        "Solicitó contacto": st.column_config.CheckboxColumn(width="small"),
+        "Por qué aparece aquí": st.column_config.TextColumn(width="large"),
     },
 )
 
-if visible.empty:
-    connection.close()
-    st.stop()
-
-st.header("Seguimiento")
+st.header("Caso seleccionado")
 labels = {
     int(row.case_id): f"#{row.priority} · {row.student_name} · {row.case_level}"
     for row in visible.itertuples()
 }
 case_id = st.selectbox("Caso", list(labels), format_func=labels.get)
 case = visible[visible["case_id"] == case_id].iloc[0]
-
 submission_id = int(case["submission_id"])
 alerts = submission_alerts(connection, submission_id, engine.alerts.version)
-if (alerts["alert_level"] == "Revisión manual").any():
-    st.warning(
-        "Este caso incluye texto abierto que debe leerse completo antes de "
-        "clasificarlo. Consulta el expediente del estudiante."
-    )
-st.dataframe(
-    alerts.rename(
-        columns={
-            "alert_level": "Nivel",
-            "alert_category": "Categoría",
-            "alert_reason": "Motivo",
-            "suggested_action": "Acción sugerida",
-        }
-    )[["Nivel", "Categoría", "Motivo", "Acción sugerida"]],
-    hide_index=True,
-    width="stretch",
+critical_area = area_names(engine).get(case["critical_area_code"], "—")
+
+summary = st.columns(4)
+summary[0].metric("Nivel", case["case_level"])
+summary[1].metric("Estado", case["case_status"])
+summary[2].metric("Contacto", case["contact_status"])
+summary[3].metric("Área más baja", critical_area)
+
+reason_tab, follow_up_tab, notes_tab = st.tabs(
+    ["Motivo y alertas", "Seguimiento", "Notas"]
 )
 
-with st.form("case_update"):
-    columns = st.columns(3)
-    status = columns[0].selectbox(
-        "Estado", CASE_STATUSES, index=CASE_STATUSES.index(case["case_status"])
+with reason_tab:
+    st.markdown(f"**Por qué aparece aquí:** {case['priority_reason']}")
+    st.markdown(f"**Fuente:** {case['case_source']}")
+    if (alerts["alert_level"] == "Revisión manual").any():
+        st.warning(
+            "Incluye texto abierto que debe leerse completo antes de "
+            "clasificarlo. Ábrelo en Estudiantes › Respuestas."
+        )
+    st.dataframe(
+        alerts.rename(
+            columns={
+                "alert_level": "Nivel",
+                "alert_category": "Categoría",
+                "alert_reason": "Motivo",
+                "suggested_action": "Acción sugerida",
+            }
+        )[["Nivel", "Categoría", "Motivo", "Acción sugerida"]],
+        hide_index=True,
+        width="stretch",
     )
-    contact = columns[1].selectbox(
-        "Contacto",
-        CONTACT_STATUSES,
-        index=CONTACT_STATUSES.index(case["contact_status"]),
-    )
-    assigned = columns[2].text_input("Responsable", case["assigned_to"] or "")
-    columns = st.columns(2)
-    follow_up = columns[0].date_input(
-        "Próximo seguimiento",
-        value=(
-            date.fromisoformat(case["next_follow_up_at"])
-            if case["next_follow_up_at"]
-            else None
-        ),
-    )
+
+with follow_up_tab:
+    if st.session_state.pop("cases_saved", False):
+        st.success("Seguimiento actualizado.")
     stored = connection.execute(
         "SELECT referral_destination, closure_reason, resolution_notes "
         "FROM cases WHERE id = ?",
         (case_id,),
     ).fetchone()
-    referral = columns[1].text_input("Canalizado a", stored[0] or "")
-    closure = st.text_input("Motivo de cierre", stored[1] or "")
-    resolution = st.text_area("Notas de resolución", stored[2] or "")
-    if st.form_submit_button("Guardar seguimiento", type="primary"):
-        update_case(
-            connection,
-            case_id,
-            case_status=status,
-            contact_status=contact,
-            assigned_to=normalize_text(assigned) or None,
-            next_follow_up_at=follow_up.isoformat() if follow_up else None,
-            referral_destination=normalize_text(referral) or None,
-            closure_reason=normalize_text(closure) or None,
-            resolution_notes=normalize_text(resolution) or None,
+    with st.form("case_update"):
+        st.markdown("**Contacto**")
+        columns = st.columns(3)
+        contact = columns[0].selectbox(
+            "Contacto",
+            CONTACT_STATUSES,
+            index=CONTACT_STATUSES.index(case["contact_status"]),
         )
-        st.success("Seguimiento actualizado.")
-        st.rerun()
+        assigned = columns[1].text_input("Responsable", case["assigned_to"] or "")
+        follow_up = columns[2].date_input(
+            "Próximo seguimiento",
+            value=(
+                date.fromisoformat(case["next_follow_up_at"])
+                if case["next_follow_up_at"]
+                else None
+            ),
+            format="DD/MM/YYYY",
+        )
+        st.markdown("**Seguimiento**")
+        columns = st.columns(2)
+        status = columns[0].selectbox(
+            "Estado", CASE_STATUSES, index=CASE_STATUSES.index(case["case_status"])
+        )
+        referral = columns[1].text_input("Canalizado a", stored[0] or "")
+        st.markdown("**Cierre**")
+        closure = st.text_input(
+            "Motivo de cierre",
+            stored[1] or "",
+            help="Se registra la fecha de cierre al cambiar el estado a Cerrado.",
+        )
+        resolution = st.text_area("Notas de resolución", stored[2] or "")
+        if st.form_submit_button("Guardar seguimiento", type="primary"):
+            update_case(
+                connection,
+                case_id,
+                case_status=status,
+                contact_status=contact,
+                assigned_to=normalize_text(assigned) or None,
+                next_follow_up_at=follow_up.isoformat() if follow_up else None,
+                referral_destination=normalize_text(referral) or None,
+                closure_reason=normalize_text(closure) or None,
+                resolution_notes=normalize_text(resolution) or None,
+            )
+            st.session_state["cases_saved"] = True
+            st.rerun()
 
-st.subheader("Notas del caso")
-with st.form("case_note", clear_on_submit=True):
-    author = st.text_input("Autor")
-    note = st.text_area("Nota")
-    if st.form_submit_button("Agregar nota"):
-        try:
-            add_case_note(connection, case_id, author, note)
-        except ValueError:
-            st.error("La nota requiere autor y contenido.")
-        else:
-            st.success("Nota agregada.")
-notes = case_notes(connection, case_id)
-if notes.empty:
-    st.write("Sin notas.")
-else:
+with notes_tab:
+    with st.form("case_note", clear_on_submit=True):
+        author = st.text_input("Autor")
+        note = st.text_area("Nota")
+        if st.form_submit_button("Agregar nota"):
+            try:
+                add_case_note(connection, case_id, author, note)
+            except ValueError:
+                st.error("La nota requiere autor y contenido.")
+            else:
+                st.success("Nota agregada.")
+    notes = case_notes(connection, case_id)
+    if notes.empty:
+        st.caption("Aún no hay notas para este caso.")
     for note_row in notes.itertuples():
         st.markdown(f"**{note_row.author}** · {note_row.created_at[:16]}")
         st.write(note_row.note)
+
 connection.close()
+st.caption(DISCLAIMER)
