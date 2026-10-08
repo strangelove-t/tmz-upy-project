@@ -1,0 +1,7 @@
+[server]
+# Sólo acepta conexiones desde esta misma computadora.
+address = "127.0.0.1"
+headless = true
+
+[browser]
+gatherUsageStats = false

@@ -1,5 +1,11 @@
+import os
+import stat
+import tomllib
+from pathlib import Path
+
 import pytest
 
+from scripts.set_local_password import write_secret
 from tamizaje.auth import hash_password, verify_password
 
 PASSWORD = "frase-segura-de-prueba"
@@ -43,3 +49,44 @@ def test_verify_rejects_tampered_parameters_without_heavy_work(tamper) -> None:
     tampered = "$".join(tamper(encoded.split("$")))
 
     assert not verify_password(PASSWORD, tampered)
+
+
+def test_write_secret_stores_only_verifiable_hash(tmp_path) -> None:
+    target = tmp_path / ".streamlit" / "secrets.toml"
+    write_secret(target, PASSWORD)
+
+    content = target.read_text(encoding="utf-8")
+    assert PASSWORD not in content
+    encoded = tomllib.loads(content)["auth"]["password_hash"]
+    assert verify_password(PASSWORD, encoded)
+
+
+@pytest.mark.skipif(os.name != "posix", reason="permisos POSIX")
+def test_write_secret_restricts_permissions(tmp_path) -> None:
+    target = tmp_path / "secrets.toml"
+    target.write_text("anterior", encoding="utf-8")
+    target.chmod(0o644)
+
+    write_secret(target, PASSWORD)
+
+    assert stat.S_IMODE(target.stat().st_mode) == 0o600
+
+
+def test_write_secret_rejects_short_password(tmp_path) -> None:
+    with pytest.raises(ValueError, match="12 caracteres"):
+        write_secret(tmp_path / "secrets.toml", "corta")
+    assert not (tmp_path / "secrets.toml").exists()
+
+
+def test_local_config_binds_only_to_loopback() -> None:
+    root = Path(__file__).parents[1]
+    config = tomllib.loads((root / ".streamlit" / "config.toml").read_text("utf-8"))
+
+    assert config["server"]["address"] == "127.0.0.1"
+    assert "--server.address 127.0.0.1" in (root / "run_windows.bat").read_text(
+        "utf-8"
+    )
+    example = tomllib.loads(
+        (root / ".streamlit" / "secrets.example.toml").read_text("utf-8")
+    )
+    assert not example["auth"]["password_hash"].startswith("scrypt$")
