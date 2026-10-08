@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -5,8 +6,14 @@ from app_helpers import configured_app, run_authenticated_page
 from synthetic_forms import project_config, synthetic_rows
 
 from tamizaje import ui
-from tamizaje.database import connect_database, import_preview, initialize_database
+from tamizaje.database import (
+    connect_database,
+    import_preview,
+    initialize_database,
+    update_case,
+)
 from tamizaje.importers import preview_csv
+from tamizaje.repository import operational_counts
 
 PAGES_DIR = Path(__file__).parents[1] / "pages"
 PAGES = sorted(path.name for path in PAGES_DIR.glob("*.py"))
@@ -114,3 +121,42 @@ def test_small_group_aggregates_are_hidden(synthetic_database) -> None:
 
     assert any("menos de 5 alumnos" in warning.value for warning in app.warning)
     assert not app.dataframe
+
+
+def test_home_prioritizes_daily_work(synthetic_database) -> None:
+    app = run_page("1_Resumen.py")
+
+    assert app.title[0].value == "Inicio"
+    labels = {metric.label for metric in app.metric}
+    assert {
+        "Casos prioritarios",
+        "Solicitudes de contacto",
+        "Seguimientos pendientes",
+        "Alumnos procesados",
+    } <= labels
+    assert any("Siguientes casos" in header.value for header in app.subheader)
+    next_cases = app.dataframe[0].value
+    assert 1 <= len(next_cases) <= 5
+    assert next_cases["Prioridad"].tolist() == sorted(next_cases["Prioridad"])
+
+
+def test_operational_counts_follow_open_cases(synthetic_database) -> None:
+    _, engine = project_config()
+    connection = connect_database(synthetic_database)
+    case_ids = [row[0] for row in connection.execute("SELECT id FROM cases")]
+    # Fixture: [prioritario con contacto, revisión manual, prioritario].
+    update_case(connection, case_ids[0], next_follow_up_at="2026-01-10")
+    update_case(
+        connection, case_ids[1], next_follow_up_at="2026-01-01", case_status="Cerrado"
+    )
+    update_case(connection, case_ids[2], next_follow_up_at="2026-01-20")
+
+    counts = operational_counts(connection, engine, date(2026, 1, 15))
+    connection.close()
+
+    assert counts == {
+        "priority_cases": 2,
+        "contact_requests": 1,
+        "pending_followups": 1,
+        "students": 6,
+    }
