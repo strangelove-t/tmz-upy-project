@@ -25,6 +25,9 @@ LIGHT_COLORS = {
     "Incompleta": "#9e9e9e",
 }
 LIGHT_ORDER = ["Verde", "Amarillo", "Rojo", "Incompleta"]
+NO_SUBMISSIONS = (
+    "Aún no hay envíos procesados. Importa una exportación desde Administración."
+)
 DISCLAIMER = (
     "Este instrumento es de tamizaje y orientación; no constituye un "
     "diagnóstico psicológico o clínico."

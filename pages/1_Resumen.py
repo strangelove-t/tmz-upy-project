@@ -10,7 +10,7 @@ from tamizaje.repository import (
     last_import,
     operational_counts,
 )
-from tamizaje.ui import DISCLAIMER, page_header, require_context
+from tamizaje.ui import DISCLAIMER, NO_SUBMISSIONS, page_header, require_context
 
 page_header("Inicio", "Qué requiere atención hoy y cuál es el siguiente paso.")
 
@@ -23,9 +23,7 @@ counts = operational_counts(connection, engine, today)
 connection.close()
 
 if latest is None or results.empty:
-    st.info(
-        "Aún no hay envíos procesados. Importa una exportación desde Administración."
-    )
+    st.info(NO_SUBMISSIONS)
     st.stop()
 
 imported_at = datetime.fromisoformat(latest["imported_at"]).astimezone(

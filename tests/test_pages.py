@@ -203,3 +203,49 @@ def test_cases_filters_persist_across_pages(synthetic_database) -> None:
 
     search = next(field for field in app.text_input if "Buscar" in field.label)
     assert search.value == "nadie-coincide"
+
+
+def test_student_record_groups_information_by_task(synthetic_database) -> None:
+    app = run_page("4_Estudiantes.py")
+
+    assert {tab.label for tab in app.tabs} >= {
+        "Resultados",
+        "Seguimiento",
+        "Respuestas",
+    }
+    sensitive = next(toggle for toggle in app.toggle if "sensibles" in toggle.label)
+    assert sensitive.value is False
+    assert any(button.label == "Ver reportes del alumno" for button in app.button)
+
+
+def test_student_record_opens_reports_for_same_student(synthetic_database) -> None:
+    app = run_page("4_Estudiantes.py")
+    search = next(field for field in app.text_input if "Buscar" in field.label)
+    search.input("synthetic003@example.edu").run()
+
+    next(b for b in app.button if b.label == "Ver reportes del alumno").click().run()
+
+    connection = connect_database(synthetic_database)
+    expected = connection.execute(
+        "SELECT su.id FROM submissions su JOIN students st ON st.id = su.student_id "
+        "WHERE st.student_upn = 'synthetic003@example.edu'"
+    ).fetchone()[0]
+    connection.close()
+    assert app.title[0].value == "Reportes"
+    selected = next(box for box in app.selectbox if box.label == "Estudiante")
+    assert selected.value == expected
+
+
+def test_reports_separates_individual_and_batch_flows(synthetic_database) -> None:
+    app = run_page("5_Reportes.py")
+
+    assert {tab.label for tab in app.tabs} == {"Individual", "Por lote"}
+    assert any("confidencial" in warning.value.lower() for warning in app.warning)
+    assert any("Vista previa" in header.value for header in app.subheader)
+
+
+def test_groups_show_selection_and_coverage_first(synthetic_database) -> None:
+    app = run_page("3_Grupos.py")
+
+    labels = [metric.label for metric in app.metric]
+    assert labels[:2] == ["Alumnos evaluados", "Casos abiertos"]
