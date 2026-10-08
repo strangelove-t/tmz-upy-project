@@ -96,7 +96,7 @@ def test_cases_page_puts_contact_request_first(synthetic_database) -> None:
     table = app.dataframe[0].value
     assert table.iloc[0]["Pidió contacto"] == "Sí"
     assert set(table["Pidió contacto"]) <= {"Sí", "No"}
-    assert table["Prioridad"].tolist() == list(range(1, len(table) + 1))
+    assert table["#"].tolist() == list(range(1, len(table) + 1))
 
 
 def test_cases_page_updates_follow_up(synthetic_database) -> None:
@@ -132,13 +132,13 @@ def test_home_prioritizes_daily_work(synthetic_database) -> None:
     assert {
         "Casos prioritarios",
         "Solicitudes de contacto",
-        "Seguimientos pendientes",
+        "Seguimientos",
         "Alumnos procesados",
     } <= labels
     assert any("Siguientes casos" in header.value for header in app.subheader)
     next_cases = app.dataframe[0].value
     assert 1 <= len(next_cases) <= 5
-    assert next_cases["Prioridad"].tolist() == sorted(next_cases["Prioridad"])
+    assert next_cases["#"].tolist() == sorted(next_cases["#"])
 
 
 def test_operational_counts_follow_open_cases(synthetic_database) -> None:
@@ -344,7 +344,7 @@ def test_cases_open_by_clicking_a_row(synthetic_database) -> None:
     assert any(header.value.startswith("#1 · ") for header in app.subheader)
 
     app.session_state["cases_table"] = {
-        "selection": {"rows": [2], "columns": [], "cells": []}
+        "selection": {"rows": [], "columns": [], "cells": [[2, "Nivel"]]}
     }
     app.run()
 

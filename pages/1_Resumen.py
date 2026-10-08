@@ -45,8 +45,8 @@ metrics[0].metric("Casos prioritarios", counts["priority_cases"])
 metrics[0].caption(f"Abiertos con nivel {engine.alerts.levels[0]}.")
 metrics[1].metric("Solicitudes de contacto", counts["contact_requests"])
 metrics[1].caption("Alumnos que pidieron que Orientación los contacte.")
-metrics[2].metric("Seguimientos pendientes", counts["pending_followups"])
-metrics[2].caption("Con fecha de seguimiento de hoy o anterior.")
+metrics[2].metric("Seguimientos", counts["pending_followups"])
+metrics[2].caption("Pendientes con fecha de hoy o anterior.")
 metrics[3].metric("Alumnos procesados", counts["students"])
 metrics[3].caption("Respondieron el cuestionario.")
 
@@ -62,27 +62,28 @@ else:
             next_follow_up_at=upcoming["next_follow_up_at"].map(format_date),
         ).rename(
             columns={
-                "priority": "Prioridad",
+                "priority": "#",
                 "student_name": "Alumno",
                 "group_name": "Grupo",
                 "case_level": "Nivel",
                 "requested": "Pidió contacto",
                 "case_status": "Estado",
-                "next_follow_up_at": "Próximo seguimiento",
+                "next_follow_up_at": "Seguimiento",
             }
         )[
             [
-                "Prioridad",
+                "#",
                 "Alumno",
                 "Grupo",
                 "Nivel",
                 "Pidió contacto",
                 "Estado",
-                "Próximo seguimiento",
+                "Seguimiento",
             ]
         ],
         hide_index=True,
         width="stretch",
+        column_config={"#": st.column_config.NumberColumn(width=45)},
     )
     st.caption(f"{len(open_cases)} casos abiertos en total.")
 

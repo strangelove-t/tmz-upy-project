@@ -125,37 +125,28 @@ selection = st.dataframe(
         assigned_to=visible["assigned_to"].fillna("—"),
     ).rename(
         columns={
-            "priority": "Prioridad",
+            "priority": "#",
             "student_name": "Alumno",
             "group_name": "Grupo",
             "case_level": "Nivel",
             "requested_contact": "Pidió contacto",
             "case_status": "Estado",
             "next_follow_up_at": "Seguimiento",
-            "assigned_to": "Responsable",
         }
-    )[
-        [
-            "Prioridad",
-            "Alumno",
-            "Grupo",
-            "Nivel",
-            "Pidió contacto",
-            "Estado",
-            "Seguimiento",
-            "Responsable",
-        ]
-    ],
+    )[["#", "Alumno", "Grupo", "Nivel", "Pidió contacto", "Estado", "Seguimiento"]],
     hide_index=True,
     width="stretch",
     on_select="rerun",
-    selection_mode="single-row",
+    # Un clic en cualquier celda abre el caso de esa fila.
+    selection_mode="single-cell",
     key="cases_table",
-    column_config={"Prioridad": st.column_config.NumberColumn(width="small")},
+    column_config={"#": st.column_config.NumberColumn(width=45)},
 )
 
 # Sin selección (o si los filtros cambiaron la tabla) se abre el primer caso.
-selected_rows = [row for row in selection.selection.rows if row < len(visible)]
+selected_rows = [
+    row for row, _column in selection.selection.cells if row < len(visible)
+]
 case = visible.iloc[selected_rows[0] if selected_rows else 0]
 case_id = int(case["case_id"])
 st.subheader(f"#{case['priority']} · {case['student_name']}")
@@ -169,6 +160,7 @@ with st.container(border=True):
             "Nivel": case["case_level"],
             "Estado": case["case_status"],
             "Contacto": case["contact_status"],
+            "Responsable": case["assigned_to"] or "Sin asignar",
             "Área más baja": critical_area,
         }
     )

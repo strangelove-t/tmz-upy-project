@@ -74,18 +74,18 @@ def apply_theme() -> None:
             border: 1px solid #dfe5ea; border-radius: 12px; padding: 1rem;
         }
         [data-testid="stCaptionContainer"] {color: #4a5560 !important;}
+        /* Sin descarga/búsqueda/pantalla completa en tablas: evita sacar datos
+           de alumnos con un clic y simplifica la interfaz. */
+        [data-testid="stElementToolbar"] {display: none !important;}
         /* Pestañas con aspecto de botón para que se reconozcan como opciones. */
-        [data-baseweb="tab-list"] {gap: 0.5rem;}
-        [data-baseweb="tab"] {
+        [data-testid="stTabs"] [role="tablist"] {gap: 0.5rem;}
+        [data-testid="stTab"] {
             border: 1px solid #c5ced6 !important; border-radius: 10px;
-            padding: 0.5rem 1.1rem !important; background: #ffffff;
+            padding: 0.45rem 1.1rem !important; background: #ffffff;
         }
-        [data-baseweb="tab"][aria-selected="true"] {
+        [data-testid="stTab"][aria-selected="true"] {
             background: #e3f1f2; border-color: #0b6e75 !important;
             font-weight: 600;
-        }
-        [data-baseweb="tab-highlight"], [data-baseweb="tab-border"] {
-            display: none;
         }
         a:focus-visible, button:focus-visible, [role="tab"]:focus-visible,
         input:focus-visible, textarea:focus-visible, summary:focus-visible {
