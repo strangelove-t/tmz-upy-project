@@ -21,11 +21,16 @@ identidad dentro de la aplicación instalada.
 
 ## 2. Iniciar
 
-1. Doble clic en `run_windows.bat` (o ejecutarlo en PowerShell).
-2. La consola debe anunciar `http://127.0.0.1:8501`. Abre esa dirección en el
-   navegador.
+1. Doble clic en el acceso directo **Tamizaje UPY** del escritorio (o en
+   `run_windows.bat`).
+2. Se abre una ventana negra titulada *Tamizaje UPY - no cierres esta ventana*
+   y, unos segundos después, el navegador con la aplicación. No cierres la
+   ventana negra; puedes minimizarla.
 3. Escribe la contraseña y pulsa **Entrar**. La aplicación abre en **Inicio**,
    que muestra qué casos requieren atención.
+
+Si el navegador no se abre solo, escribe `http://127.0.0.1:8501` en la barra de
+direcciones.
 
 La importación y el recálculo están en **Administración**, fuera del trabajo
 diario. La importación real pide la autorización firmada, una casilla y
@@ -35,11 +40,22 @@ La aplicación sólo escucha en `127.0.0.1`: no acepta conexiones desde otras
 computadoras. Si la consola muestra una dirección de red (`Network URL`) en
 lugar de `127.0.0.1`, detén la aplicación y avisa a soporte.
 
+### Crear el acceso directo (una sola vez, soporte)
+
+1. Clic derecho sobre `run_windows.bat` › **Mostrar más opciones** ›
+   **Enviar a** › **Escritorio (crear acceso directo)**.
+2. Renombra el acceso directo del escritorio como **Tamizaje UPY**.
+3. Opcional: clic derecho › **Propiedades** › **Ejecutar: Minimizada**, para
+   que la ventana negra no estorbe.
+
 ## 3. Cerrar
 
-1. Pulsa **Cerrar sesión** en la barra lateral.
-2. Cierra la pestaña del navegador.
-3. En la ventana de la consola presiona `Ctrl + C` y ciérrala.
+1. Pulsa **Salir de la aplicación** (botón verde del menú izquierdo). Cierra la
+   sesión y apaga la aplicación; la ventana negra se cierra sola.
+2. Cierra la pestaña del navegador. Si aparece un aviso de conexión, es normal.
+
+**Cerrar sesión** sólo pide de nuevo la contraseña, sin apagar la aplicación.
+Recargar la página (`F5`) también cierra la sesión.
 
 Bloquea Windows (`Windows + L`) siempre que te alejes del equipo, aunque la
 aplicación esté cerrada.

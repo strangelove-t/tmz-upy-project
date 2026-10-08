@@ -89,6 +89,8 @@ plantillas de reportes (lista blanca de campos) están en `templates/`. Consulta
 
 ## Guía breve de uso
 
+`run_windows.bat` abre el navegador automáticamente. Para terminar se usa el
+botón **Salir de la aplicación**, que cierra la sesión y apaga el servidor.
 Después de escribir la contraseña, el menú lateral muestra seis páginas,
 ordenadas por frecuencia de uso:
 
@@ -96,8 +98,9 @@ ordenadas por frecuencia de uso:
    vencidos, los siguientes cinco casos por atender y las áreas con más
    necesidad. Es el punto de partida diario.
 2. **Casos**: lista priorizada con búsqueda y filtros (se conservan durante la
-   sesión). Al elegir un caso: pestañas *Motivo y alertas*, *Seguimiento*
-   (contacto, estado, canalización y cierre) y *Notas*.
+   sesión). Un clic en cualquier celda de una fila abre el caso, con pestañas
+   *Motivo y alertas*, *Seguimiento* (contacto, estado, canalización y cierre)
+   y *Notas*. El motivo de la prioridad se explica en lenguaje cotidiano.
 3. **Estudiantes**: expediente con pestañas *Resultados* (nueve áreas,
    fortalezas, oportunidades y recomendaciones), *Seguimiento* y *Respuestas*
    (las sensibles quedan ocultas hasta activarlas). Si hay varios envíos, aquí

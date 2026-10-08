@@ -87,6 +87,32 @@ capturas se revisaron y se eliminaron al terminar; no se usó el CSV real ni
 - No hay identidad visual oficial de UPY; se usa una apariencia institucional
   neutra hasta contar con colores y logotipo autorizados.
 
+## A2. Ajustes para una usuaria con poca experiencia tecnológica
+
+Segunda ronda (2026-10-08, rama `feature/usabilidad-maestra`), revisada con la
+misma metodología sintética y en el puerto aislado `127.0.0.1:8765`.
+
+- [x] `run_windows.bat` abre el navegador solo (`--server.headless false`),
+      muestra instrucciones en la ventana y hace pausa si falta `.venv`.
+- [x] Botón **Salir de la aplicación**: cierra la sesión y apaga el servidor.
+      Verificado en vivo: el puerto deja de responder.
+- [x] Casos: un clic en cualquier celda abre el caso. La primera versión con
+      casillas por fila resultó poco descubrible y se cambió.
+- [x] Sí/No en lugar de casillas de sólo lectura.
+- [x] Motivo de prioridad en lenguaje cotidiano.
+- [x] Fechas `dd/mm/aaaa` en las vistas diarias (notas en hora local).
+- [x] Sin versiones ni términos internos (scoring, envío, vigente, huella,
+      None) en Inicio, Casos, Estudiantes, Grupos y Reportes; lo verifica
+      `test_daily_pages_avoid_technical_jargon`.
+- [x] Letra base de 18 px; las tablas siguen sin scroll horizontal a 1366 px.
+- [x] Pestañas con aspecto de botón.
+- [x] Explicaciones de Inicio visibles sin pasar el ratón.
+- [x] Gráficas sin barra de zoom; tablas sin barra de descarga, búsqueda ni
+      pantalla completa.
+
+Pendiente: el selector de fecha muestra `dd/mm/yyyy` y el cargador dice
+"Upload"; ambos textos son fijos de Streamlit.
+
 ## B. Aceptación institucional
 
 Sólo la maestra marca estas casillas después de la revisión presencial.
