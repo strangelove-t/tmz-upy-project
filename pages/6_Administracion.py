@@ -1,8 +1,9 @@
 import sqlite3
+from datetime import datetime
 
 import streamlit as st
 
-from tamizaje import SCORING_VERSION, ui
+from tamizaje import ui
 from tamizaje.alerts import AlertConfigError
 from tamizaje.database import (
     DuplicateImportError,
@@ -22,27 +23,20 @@ from tamizaje.questionnaire import (
 )
 from tamizaje.questionnaire_draft import read_pending_headers
 from tamizaje.recommendations import RecommendationConfigError
+from tamizaje.repository import last_import
 from tamizaje.scoring_config import ScoringConfigError
-from tamizaje.ui import page_header, require_authentication
+from tamizaje.ui import DISCLAIMER, page_header, require_authentication
 
 TEST_DATA_ROWS = 14
+REAL_IMPORT_PHRASE = "IMPORTAR"
 
 require_authentication(show_logout=False)
-
 page_header(
     "Administración",
-    f"Importación y recálculo · scoring v{SCORING_VERSION}",
-)
-st.info(
-    "Importa la exportación de Forms. Las líneas 2–15 se excluyen de la "
-    "importación real."
-)
-st.warning(
-    "Este instrumento es de tamizaje y orientación; no constituye un "
-    "diagnóstico psicológico o clínico."
+    "Importación de respuestas y recálculo. Úsala sólo al recibir una "
+    "exportación nueva o al cambiar de versión.",
 )
 
-st.header("Importar respuestas")
 try:
     questionnaire = load_questionnaire(ui.CONFIG_DIR / "questionnaire.csv")
     aliases = load_questionnaire_aliases(
@@ -63,38 +57,74 @@ except (
     aliases = ()
     pending_headers = ()
     engine = None
-    st.error("No fue posible cargar la configuración del cuestionario y scoring.")
+    st.error(
+        "No fue posible cargar la configuración del cuestionario y scoring. "
+        "La importación está bloqueada; contacta a soporte."
+    )
 
-approved_catalog_count = sum(
-    question.mapping_status == "approved" for question in questionnaire
-)
-verified_catalog_count = sum(
-    question.mapping_status == "verified_text" for question in questionnaire
+latest = None
+if ui.DATABASE_PATH.exists():
+    status_connection = connect_database(ui.DATABASE_PATH)
+    initialize_database(status_connection)
+    latest = last_import(status_connection)
+    status_connection.close()
+
+status = st.columns(3)
+if latest is None:
+    status[0].metric("Última importación", "Ninguna")
+else:
+    imported_at = datetime.fromisoformat(latest["imported_at"])
+    if engine is not None:
+        imported_at = imported_at.astimezone(engine.report_timezone)
+    status[0].metric("Última importación", f"{imported_at:%d/%m/%Y %H:%M}")
+status[1].metric("Scoring", f"v{engine.scoring.version}" if engine else "—")
+status[2].metric(
+    "Reglas de alerta",
+    f"v{engine.alerts.version}" if engine else "—",
+    help=f"{len(engine.alerts.rules)} reglas activas." if engine else None,
 )
 st.caption(
-    f"Catálogo aprobado: {approved_catalog_count} · "
-    f"Texto verificado: {verified_catalog_count} · "
-    f"Pendientes de revisión: {len(pending_headers)}"
-)
-if engine is not None:
-    st.caption(
-        f"Scoring activo: {engine.scoring.version} · "
-        f"Reglas de alerta: {engine.alerts.version} "
-        f"({len(engine.alerts.rules)} reglas)"
+    f"Catálogo aprobado: {sum(q.mapping_status == 'approved' for q in questionnaire)}"
+    f" · Texto verificado: "
+    f"{sum(q.mapping_status == 'verified_text' for q in questionnaire)}"
+    f" · Pendientes de revisión: {len(pending_headers)}"
+    + (
+        f" · Scoring activo: {engine.scoring.version}"
+        f" · Reglas de alerta: {engine.alerts.version}"
+        if engine
+        else ""
     )
-uploaded_file = st.file_uploader("Selecciona una exportación CSV", type=["csv"])
-test_mode = st.toggle(
-    "Modo seguro: analizar sólo los 14 registros de prueba",
-    value=True,
-    help="En el archivo actual corresponden a las líneas 2–15.",
 )
 
-if uploaded_file is not None:
-    content = uploaded_file.getvalue()
+st.header("Importar respuestas")
+
+st.subheader("1. Archivo")
+uploaded_file = st.file_uploader("Exportación CSV de Microsoft Forms", type=["csv"])
+test_mode = st.toggle(
+    "Modo de prueba: analizar sólo los 14 registros de prueba (líneas 2–15)",
+    value=True,
+)
+if test_mode:
+    st.info(
+        "Modo de prueba activo: se analizan sólo las líneas 2–15 y nada se "
+        "guarda en la base de datos."
+    )
+else:
+    st.error(
+        "Procesamiento real: se analizarán las líneas 16 en adelante, que "
+        "contienen información sensible y confidencial. Hazlo sólo con la "
+        "autorización firmada en el checklist de aceptación."
+    )
+
+st.subheader("2. Validación")
+if uploaded_file is None:
+    st.caption("Selecciona un archivo para validarlo.")
+    preview = None
+else:
     try:
         preview = preview_csv(
             uploaded_file.name,
-            content,
+            uploaded_file.getvalue(),
             max_rows=TEST_DATA_ROWS if test_mode else None,
             skip_rows=0 if test_mode else TEST_DATA_ROWS,
             questionnaire=questionnaire,
@@ -102,71 +132,80 @@ if uploaded_file is not None:
             aliases=aliases,
         )
     except ImportErrorSafe:
-        st.error("No fue posible interpretar la estructura del CSV.")
-    else:
-        summary = preview.summary()
-        metadata_columns = st.columns(4)
-        metadata_columns[0].metric("Registros analizados", preview.row_count)
-        metadata_columns[1].metric("Columnas", preview.column_count)
-        metadata_columns[2].metric("Codificación", preview.encoding)
-        metadata_columns[3].metric("Hash", summary["sha256_short"])
-
-        delimiter_names = {";": "punto y coma", ",": "coma", "\t": "tabulador"}
-        st.caption(
-            f"Separador: {delimiter_names.get(preview.delimiter, 'otro permitido')}"
+        preview = None
+        st.error(
+            "No fue posible leer la estructura del CSV. Verifica que sea la "
+            "exportación original de Forms."
         )
 
-        for issue in preview.validation.errors:
-            location = f" Fila {issue.row_number}." if issue.row_number else ""
-            st.error(f"{issue.message}{location}")
-        for issue in preview.validation.warnings:
-            st.warning(issue.message)
+mapping = preview.mapping if preview is not None else None
+ready = (
+    preview is not None
+    and preview.validation.is_valid
+    and mapping is not None
+    and mapping.is_valid
+    and engine is not None
+)
+if preview is not None:
+    for issue in preview.validation.errors:
+        location = f" Fila {issue.row_number}." if issue.row_number else ""
+        st.error(f"{issue.message}{location}")
+    for issue in preview.validation.warnings:
+        st.warning(issue.message)
+    if mapping is not None and not mapping.is_valid:
+        st.error(
+            "Algunas columnas no coinciden con el cuestionario "
+            f"({len(mapping.unknown_indices)} desconocidas, "
+            f"{len(mapping.ambiguous_indices)} ambiguas, "
+            f"{len(mapping.pending_indices) + mapping.verified_count} pendientes). "
+            "La importación queda bloqueada."
+        )
+    elif ready:
+        st.success("Estructura y columnas válidas.")
 
-        mapping = preview.mapping
-        if mapping is not None:
-            mapping_columns = st.columns(5)
-            mapping_columns[0].metric("Aprobadas", mapping.approved_count)
-            mapping_columns[1].metric("Texto verificado", mapping.verified_count)
-            mapping_columns[2].metric("Pendientes", len(mapping.pending_indices))
-            mapping_columns[3].metric("Desconocidas", len(mapping.unknown_indices))
-            mapping_columns[4].metric("Ambiguas", len(mapping.ambiguous_indices))
-            if not mapping.is_valid:
-                st.error(
-                    "El mapeo del cuestionario está incompleto; la importación "
-                    "permanece bloqueada."
-                )
+    st.subheader("3. Resumen")
+    summary = preview.summary()
+    columns = st.columns(3)
+    columns[0].metric("Registros analizados", preview.row_count)
+    columns[1].metric("Columnas", preview.column_count)
+    columns[2].metric(
+        "Columnas reconocidas", mapping.approved_count if mapping else "—"
+    )
+    delimiter_names = {";": "punto y coma", ",": "coma", "\t": "tabulador"}
+    first_line = preview.source_row_numbers[0] if preview.source_row_numbers else "—"
+    last_line = preview.source_row_numbers[-1] if preview.source_row_numbers else "—"
+    st.caption(
+        f"Líneas {first_line}–{last_line} · codificación {preview.encoding} · "
+        f"separador {delimiter_names.get(preview.delimiter, 'otro permitido')} · "
+        f"huella {summary['sha256_short']}"
+    )
 
-        if test_mode:
-            st.info(
-                "Modo seguro activo: esta previsualización no puede guardarse "
-                "en la base de datos."
-            )
+    st.subheader("4. Confirmación")
+    if test_mode:
+        st.info(
+            "Modo de prueba: la previsualización termina aquí. Para importar "
+            "datos reales desactiva el modo de prueba."
+        )
+    elif not ready:
+        st.warning("Corrige los problemas de validación antes de importar.")
+    else:
+        connection = connect_database(ui.DATABASE_PATH)
+        initialize_database(connection)
+        if is_imported(connection, preview.sha256):
+            st.error("Este archivo ya fue importado y no puede duplicarse.")
         else:
-            st.warning(
-                "El archivo completo incluye información real, sensible y "
-                "confidencial desde la línea 16."
-            )
             authorized = st.checkbox(
-                "Confirmo que tengo autorización para procesar estos datos reales."
+                "Confirmo que la maestra autorizó por escrito procesar estos "
+                "datos reales."
             )
-            connection = connect_database(ui.DATABASE_PATH)
-            initialize_database(connection)
-            duplicate = is_imported(connection, preview.sha256)
-
-            if duplicate:
-                st.error("Este archivo ya fue importado y no puede duplicarse.")
-
+            phrase = st.text_input(
+                f"Escribe {REAL_IMPORT_PHRASE} para confirmar",
+                disabled=not authorized,
+            )
             if st.button(
-                "Confirmar importación",
+                f"Importar {preview.row_count} registros reales",
                 type="primary",
-                disabled=(
-                    not authorized
-                    or not preview.validation.is_valid
-                    or mapping is None
-                    or not mapping.is_valid
-                    or engine is None
-                    or duplicate
-                ),
+                disabled=not authorized or phrase.strip() != REAL_IMPORT_PHRASE,
             ):
                 try:
                     import_id = import_preview(
@@ -183,30 +222,40 @@ if uploaded_file is not None:
                         "cambios parciales."
                     )
                 else:
-                    st.success(f"Importación completada con folio local {import_id}.")
-            connection.close()
+                    st.success(
+                        f"Importación completada (folio local {import_id}). "
+                        "Revisa los pendientes en Inicio."
+                    )
+        connection.close()
 
-if engine is not None and ui.DATABASE_PATH.exists():
-    st.header("Recalcular envíos históricos")
+st.divider()
+with st.expander("Recalcular resultados"):
     st.write(
         "Aplica las versiones activas de scoring y reglas de alerta a todos los "
         "envíos guardados, sin reimportar el archivo. Los resultados de otras "
         "versiones se conservan y el seguimiento de los casos no se modifica."
     )
-    confirm_recalculation = st.checkbox(
-        f"Confirmo recalcular con scoring {engine.scoring.version} y reglas "
-        f"{engine.alerts.version}."
-    )
-    if st.button("Recalcular", disabled=not confirm_recalculation):
-        connection = connect_database(ui.DATABASE_PATH)
-        initialize_database(connection)
-        try:
-            count = recalculate_all(
-                connection, engine.scoring, engine.alerts, engine.recommendations
-            )
-        except sqlite3.Error:
-            st.error("El recálculo falló y no se guardaron cambios parciales.")
-        else:
-            st.success(f"Se recalcularon {count} envíos.")
-        finally:
-            connection.close()
+    if engine is None:
+        st.warning("La configuración no cargó; el recálculo está bloqueado.")
+    elif not ui.DATABASE_PATH.exists():
+        st.caption("No hay envíos guardados para recalcular.")
+    else:
+        confirm_recalculation = st.checkbox(
+            f"Confirmo recalcular con scoring {engine.scoring.version} y reglas "
+            f"{engine.alerts.version}."
+        )
+        if st.button("Recalcular", disabled=not confirm_recalculation):
+            connection = connect_database(ui.DATABASE_PATH)
+            initialize_database(connection)
+            try:
+                count = recalculate_all(
+                    connection, engine.scoring, engine.alerts, engine.recommendations
+                )
+            except sqlite3.Error:
+                st.error("El recálculo falló y no se guardaron cambios parciales.")
+            else:
+                st.success(f"Se recalcularon {count} envíos.")
+            finally:
+                connection.close()
+
+st.caption(DISCLAIMER)
