@@ -450,3 +450,25 @@ de la maestra y la autorización de datos reales.
 git add docs/checklists/ACEPTACION_PILOTO.md
 git commit -m "docs: record pilot acceptance evidence"
 ```
+
+### Task 7: Handoff al bloque UX/UI obligatorio
+
+**Files:**
+- Read: `docs/superpowers/specs/2026-10-08-ux-ui-operativa-design.md`
+- Execute: `docs/superpowers/plans/2026-10-08-ux-ui-operativa.md`
+
+- [ ] **Step 1: Confirm the technical pilot is green**
+
+No iniciar cambios visuales si fallan autenticación, aislamiento de líneas 2–15,
+suite, Ruff, compilación o higiene de Git.
+
+- [ ] **Step 2: Execute the complete UX/UI plan**
+
+Ejecutar las seis tareas del plan UX/UI en orden. Este bloque es obligatorio
+antes de instalar la versión definitiva o solicitar autorización para importar
+datos reales.
+
+- [ ] **Step 3: Preserve the institutional gates**
+
+La aceptación visual de la maestra y la autorización de las líneas 16 en
+adelante permanecerán sin marcar hasta que ella las confirme personalmente.
