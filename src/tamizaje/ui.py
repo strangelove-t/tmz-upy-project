@@ -74,6 +74,19 @@ def apply_theme() -> None:
             border: 1px solid #dfe5ea; border-radius: 12px; padding: 1rem;
         }
         [data-testid="stCaptionContainer"] {color: #4a5560 !important;}
+        /* Pestañas con aspecto de botón para que se reconozcan como opciones. */
+        [data-baseweb="tab-list"] {gap: 0.5rem;}
+        [data-baseweb="tab"] {
+            border: 1px solid #c5ced6 !important; border-radius: 10px;
+            padding: 0.5rem 1.1rem !important; background: #ffffff;
+        }
+        [data-baseweb="tab"][aria-selected="true"] {
+            background: #e3f1f2; border-color: #0b6e75 !important;
+            font-weight: 600;
+        }
+        [data-baseweb="tab-highlight"], [data-baseweb="tab-border"] {
+            display: none;
+        }
         a:focus-visible, button:focus-visible, [role="tab"]:focus-visible,
         input:focus-visible, textarea:focus-visible, summary:focus-visible {
             outline: 3px solid #0b6e75 !important; outline-offset: 2px;
@@ -110,6 +123,11 @@ def status_row(items: dict[str, str]) -> None:
     ):
         column.caption(label)
         column.markdown(f"**{value}**")
+
+
+def show_chart(figure) -> None:
+    """Gráfica sin barra de herramientas de zoom ni descarga."""
+    st.plotly_chart(figure, width="stretch", config={"displayModeBar": False})
 
 
 def page_header(title: str, description: str) -> None:

@@ -16,6 +16,7 @@ from tamizaje.ui import (
     format_date,
     page_header,
     require_context,
+    show_chart,
 )
 
 page_header("Inicio", "Qué requiere atención hoy y cuál es el siguiente paso.")
@@ -40,22 +41,14 @@ st.caption(
 )
 
 metrics = st.columns(4)
-metrics[0].metric(
-    "Casos prioritarios",
-    counts["priority_cases"],
-    help=f"Casos abiertos con nivel {engine.alerts.levels[0]}.",
-)
-metrics[1].metric(
-    "Solicitudes de contacto",
-    counts["contact_requests"],
-    help="Alumnos que pidieron que Orientación los contacte.",
-)
-metrics[2].metric(
-    "Seguimientos pendientes",
-    counts["pending_followups"],
-    help="Casos abiertos con seguimiento programado para hoy o antes.",
-)
+metrics[0].metric("Casos prioritarios", counts["priority_cases"])
+metrics[0].caption(f"Abiertos con nivel {engine.alerts.levels[0]}.")
+metrics[1].metric("Solicitudes de contacto", counts["contact_requests"])
+metrics[1].caption("Alumnos que pidieron que Orientación los contacte.")
+metrics[2].metric("Seguimientos pendientes", counts["pending_followups"])
+metrics[2].caption("Con fecha de seguimiento de hoy o anterior.")
 metrics[3].metric("Alumnos procesados", counts["students"])
+metrics[3].caption("Respondieron el cuestionario.")
 
 st.subheader("Siguientes casos por atender")
 open_cases = cases[cases["case_status"] != CLOSED_STATUS]
@@ -119,7 +112,7 @@ with left:
         figure.update_yaxes(
             categoryorder="array", categoryarray=by_level["Nivel"][::-1]
         )
-        st.plotly_chart(figure, width="stretch")
+        show_chart(figure)
 with right:
     st.subheader("Áreas con más necesidad")
     averages = (
@@ -140,7 +133,7 @@ with right:
     )
     figure.update_layout(height=260, margin=dict(l=0, r=0, t=10, b=0))
     figure.update_yaxes(autorange="reversed")
-    st.plotly_chart(figure, width="stretch")
+    show_chart(figure)
     st.caption("Promedio institucional 0–100; 100 = mayor fortaleza.")
 
 with st.expander("Área con menor promedio por grupo"):

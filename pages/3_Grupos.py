@@ -9,6 +9,7 @@ from tamizaje.ui import (
     NO_SUBMISSIONS,
     page_header,
     require_context,
+    show_chart,
 )
 
 page_header("Grupos", "Resultados por carrera y grupo.")
@@ -77,7 +78,7 @@ with left:
     )
     figure.update_layout(height=380, margin=dict(l=0, r=0, t=10, b=0))
     figure.update_yaxes(autorange="reversed")
-    st.plotly_chart(figure, width="stretch")
+    show_chart(figure)
 with right:
     st.subheader("Semáforos por área")
     distribution = (
@@ -98,7 +99,7 @@ with right:
     )
     figure.update_layout(height=380, margin=dict(l=0, r=0, t=10, b=0))
     figure.update_yaxes(autorange="reversed")
-    st.plotly_chart(figure, width="stretch")
+    show_chart(figure)
 
 st.subheader("Casos por nivel")
 by_level = (

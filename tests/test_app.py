@@ -105,3 +105,16 @@ def test_windows_launcher_opens_browser_on_loopback() -> None:
 
     assert "--server.address 127.0.0.1" in launcher
     assert "--server.headless false" in launcher
+
+
+def test_theme_uses_larger_base_font() -> None:
+    import tomllib
+
+    config = tomllib.loads((ROOT / ".streamlit" / "config.toml").read_text("utf-8"))
+
+    assert config["theme"]["baseFontSize"] >= 17
+
+
+def test_charts_are_rendered_through_shared_helper() -> None:
+    for page in (ROOT / "pages").glob("*.py"):
+        assert "st.plotly_chart" not in page.read_text("utf-8"), page.name

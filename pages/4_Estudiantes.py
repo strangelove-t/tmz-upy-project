@@ -20,6 +20,7 @@ from tamizaje.ui import (
     page_header,
     question_texts,
     require_context,
+    show_chart,
     status_row,
 )
 
@@ -142,7 +143,7 @@ with results_tab:
         )
         figure.update_layout(height=360, margin=dict(l=0, r=0, t=10, b=0))
         figure.update_yaxes(autorange="reversed")
-        st.plotly_chart(figure, width="stretch")
+        show_chart(figure)
 
         strengths = results[results["traffic_light"] == "Verde"]
         opportunities = results[results["traffic_light"].isin(["Amarillo", "Rojo"])]
