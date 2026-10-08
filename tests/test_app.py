@@ -86,3 +86,22 @@ def test_administration_keeps_csv_import_control() -> None:
         for caption in app.caption
     )
     assert any("Scoring activo: 0.2" in caption.value for caption in app.caption)
+
+
+def test_exit_button_closes_session_and_schedules_shutdown(monkeypatch) -> None:
+    calls = []
+    monkeypatch.setattr(ui, "_schedule_termination", lambda: calls.append(True))
+    app = configured_app(authenticated=True).run()
+
+    next(b for b in app.button if b.label == "Salir de la aplicación").click().run()
+
+    assert calls == [True]
+    assert "authenticated" not in app.session_state
+    assert any("ya puedes cerrar" in item.value.lower() for item in app.success)
+
+
+def test_windows_launcher_opens_browser_on_loopback() -> None:
+    launcher = (ROOT / "run_windows.bat").read_text("utf-8")
+
+    assert "--server.address 127.0.0.1" in launcher
+    assert "--server.headless false" in launcher

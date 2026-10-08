@@ -1,6 +1,9 @@
 """Utilidades compartidas por las páginas de Streamlit."""
 
+import os
+import signal
 import sqlite3
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -125,12 +128,44 @@ def _configured_password_hash() -> str | None:
         return None
 
 
+SHUTDOWN_DELAY_SECONDS = 2.0
+
+
+def _schedule_termination() -> None:
+    """Apaga el servidor local tras mostrar el mensaje de despedida."""
+    timer = threading.Timer(
+        SHUTDOWN_DELAY_SECONDS, lambda: os.kill(os.getpid(), signal.SIGTERM)
+    )
+    timer.daemon = True
+    timer.start()
+
+
+def shutdown_application() -> None:
+    """Cierra la sesión y detiene la aplicación (uso local de una sola persona)."""
+    st.session_state.clear()
+    _schedule_termination()
+    st.success(
+        "La aplicación se cerró correctamente. Ya puedes cerrar esta pestaña del "
+        "navegador. Si aparece un aviso de conexión, es normal."
+    )
+    st.stop()
+
+
 def require_authentication(*, show_logout: bool = True) -> None:
     """Detiene la ejecución hasta validar la contraseña local única."""
     if st.session_state.get("authenticated"):
-        if show_logout and st.sidebar.button("Cerrar sesión", key="logout"):
-            st.session_state.clear()
-            st.rerun()
+        if show_logout:
+            if st.sidebar.button(
+                "Salir de la aplicación",
+                key="exit_app",
+                type="primary",
+                icon=":material/power_settings_new:",
+                help="Cierra la sesión y apaga la aplicación en esta computadora.",
+            ):
+                shutdown_application()
+            if st.sidebar.button("Cerrar sesión", key="logout"):
+                st.session_state.clear()
+                st.rerun()
         return
 
     password_hash = _configured_password_hash()
