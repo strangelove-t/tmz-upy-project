@@ -61,6 +61,7 @@ else:
     st.dataframe(
         upcoming.assign(
             requested=upcoming["requested_contact"].map({True: "Sí", False: "No"}),
+            next_follow_up_at=upcoming["next_follow_up_at"].fillna("—"),
         ).rename(
             columns={
                 "priority": "Prioridad",
@@ -115,7 +116,7 @@ with left:
         )
         st.plotly_chart(figure, width="stretch")
 with right:
-    st.subheader("Áreas con mayor necesidad de apoyo")
+    st.subheader("Áreas con más necesidad")
     averages = (
         results.groupby("area_name", sort=False)["normalized_score"]
         .mean()

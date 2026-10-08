@@ -69,11 +69,24 @@ def apply_theme() -> None:
         div[data-testid="stForm"] {
             border: 1px solid #dfe5ea; border-radius: 12px; padding: 1rem;
         }
-        :focus-visible {outline: 3px solid #0b6e75; outline-offset: 2px;}
+        [data-testid="stCaptionContainer"] {color: #4a5560 !important;}
+        a:focus-visible, button:focus-visible, [role="tab"]:focus-visible,
+        input:focus-visible, textarea:focus-visible, summary:focus-visible {
+            outline: 3px solid #0b6e75 !important; outline-offset: 2px;
+        }
         </style>
         """,
         unsafe_allow_html=True,
     )
+
+
+def status_row(items: dict[str, str]) -> None:
+    """Etiqueta + valor en texto completo; st.metric recorta valores largos."""
+    for column, (label, value) in zip(
+        st.columns(len(items)), items.items(), strict=True
+    ):
+        column.caption(label)
+        column.markdown(f"**{value}**")
 
 
 def page_header(title: str, description: str) -> None:

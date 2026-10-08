@@ -11,3 +11,7 @@ primaryColor = "#0B6E75"
 backgroundColor = "#F6F8FA"
 secondaryBackgroundColor = "#FFFFFF"
 textColor = "#172026"
+
+[client]
+# Oculta opciones de desarrollo (por ejemplo, "Deploy") a la usuaria final.
+toolbarMode = "minimal"

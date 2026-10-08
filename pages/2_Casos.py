@@ -11,7 +11,13 @@ from tamizaje.repository import (
     cases_frame,
     submission_alerts,
 )
-from tamizaje.ui import DISCLAIMER, area_names, page_header, require_context
+from tamizaje.ui import (
+    DISCLAIMER,
+    area_names,
+    page_header,
+    require_context,
+    status_row,
+)
 
 page_header(
     "Casos",
@@ -112,18 +118,18 @@ if visible.empty:
 st.caption(f"{len(visible)} de {len(cases)} casos")
 st.dataframe(
     visible.assign(
-        requested=visible["requested_contact"],
+        next_follow_up_at=visible["next_follow_up_at"].fillna("—"),
+        assigned_to=visible["assigned_to"].fillna("—"),
     ).rename(
         columns={
             "priority": "Prioridad",
             "student_name": "Alumno",
             "group_name": "Grupo",
             "case_level": "Nivel",
-            "requested": "Solicitó contacto",
+            "requested_contact": "Pidió contacto",
             "case_status": "Estado",
-            "next_follow_up_at": "Próximo seguimiento",
+            "next_follow_up_at": "Seguimiento",
             "assigned_to": "Responsable",
-            "priority_reason": "Por qué aparece aquí",
         }
     )[
         [
@@ -131,21 +137,20 @@ st.dataframe(
             "Alumno",
             "Grupo",
             "Nivel",
-            "Solicitó contacto",
+            "Pidió contacto",
             "Estado",
-            "Próximo seguimiento",
+            "Seguimiento",
             "Responsable",
-            "Por qué aparece aquí",
         ]
     ],
     hide_index=True,
     width="stretch",
     column_config={
         "Prioridad": st.column_config.NumberColumn(width="small"),
-        "Solicitó contacto": st.column_config.CheckboxColumn(width="small"),
-        "Por qué aparece aquí": st.column_config.TextColumn(width="large"),
+        "Pidió contacto": st.column_config.CheckboxColumn(width="small"),
     },
 )
+st.caption("El motivo de cada posición aparece al seleccionar el caso.")
 
 st.header("Caso seleccionado")
 labels = {
@@ -158,11 +163,15 @@ submission_id = int(case["submission_id"])
 alerts = submission_alerts(connection, submission_id, engine.alerts.version)
 critical_area = area_names(engine).get(case["critical_area_code"], "—")
 
-summary = st.columns(4)
-summary[0].metric("Nivel", case["case_level"])
-summary[1].metric("Estado", case["case_status"])
-summary[2].metric("Contacto", case["contact_status"])
-summary[3].metric("Área más baja", critical_area)
+with st.container(border=True):
+    status_row(
+        {
+            "Nivel": case["case_level"],
+            "Estado": case["case_status"],
+            "Contacto": case["contact_status"],
+            "Área más baja": critical_area,
+        }
+    )
 
 reason_tab, follow_up_tab, notes_tab = st.tabs(
     ["Motivo y alertas", "Seguimiento", "Notas"]
@@ -176,18 +185,12 @@ with reason_tab:
             "Incluye texto abierto que debe leerse completo antes de "
             "clasificarlo. Ábrelo en Estudiantes › Respuestas."
         )
-    st.dataframe(
-        alerts.rename(
-            columns={
-                "alert_level": "Nivel",
-                "alert_category": "Categoría",
-                "alert_reason": "Motivo",
-                "suggested_action": "Acción sugerida",
-            }
-        )[["Nivel", "Categoría", "Motivo", "Acción sugerida"]],
-        hide_index=True,
-        width="stretch",
-    )
+    st.markdown(f"**Alertas ({len(alerts)})**")
+    for alert in alerts.itertuples():
+        with st.container(border=True):
+            st.markdown(f"**{alert.alert_level}** · {alert.alert_category}")
+            st.write(alert.alert_reason)
+            st.caption(f"Acción sugerida: {alert.suggested_action}")
 
 with follow_up_tab:
     if st.session_state.pop("cases_saved", False):

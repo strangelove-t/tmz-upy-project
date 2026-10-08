@@ -19,6 +19,7 @@ from tamizaje.ui import (
     page_header,
     question_texts,
     require_context,
+    status_row,
 )
 
 RESPONSE_COLUMNS = {
@@ -188,11 +189,14 @@ with follow_up_tab:
             st.caption(
                 "Caso inactivo tras un recálculo; se conserva para auditoría."
             )
-        columns = st.columns(4)
-        columns[0].metric("Nivel", case["case_level"])
-        columns[1].metric("Estado", case["case_status"])
-        columns[2].metric("Contacto", case["contact_status"])
-        columns[3].metric("Responsable", case["assigned_to"] or "—")
+        status_row(
+            {
+                "Nivel": case["case_level"],
+                "Estado": case["case_status"],
+                "Contacto": case["contact_status"],
+                "Responsable": case["assigned_to"] or "—",
+            }
+        )
         st.caption(
             f"Fuente: {case['case_source']} · próximo seguimiento: "
             f"{case['next_follow_up_at'] or '—'}"

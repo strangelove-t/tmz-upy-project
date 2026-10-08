@@ -94,7 +94,7 @@ def test_cases_page_puts_contact_request_first(synthetic_database) -> None:
     app = run_page("2_Casos.py")
 
     table = app.dataframe[0].value
-    assert table.iloc[0]["Solicitó contacto"]
+    assert table.iloc[0]["Pidió contacto"]
     assert table["Prioridad"].tolist() == list(range(1, len(table) + 1))
 
 
