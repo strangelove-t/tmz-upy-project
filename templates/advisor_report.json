@@ -1,5 +1,16 @@
 {
-  "template_version": "0.1",
+  "template_version": "1.0",
   "report_type": "advisor",
-  "fields": []
+  "title": "Expediente académico para asesoría",
+  "fields": [
+    "student_name",
+    "career",
+    "group_name",
+    "generated_at",
+    "scoring_version",
+    "areas",
+    "recommendations"
+  ],
+  "areas": ["A01", "A02", "A03", "A04"],
+  "disclaimer": "Documento sanitizado de uso exclusivo para asesoría académica. No incluye información de salud, respuestas abiertas, alertas internas ni notas de Orientación."
 }

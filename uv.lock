@@ -802,7 +802,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6,<7" },
     { name = "reportlab", specifier = ">=4.2,<5" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.7,<1" },
-    { name = "streamlit", specifier = ">=1.39,<2" },
+    { name = "streamlit", specifier = ">=1.50,<2" },
 ]
 provides-extras = ["dev"]
 
