@@ -1,0 +1,19 @@
+[server]
+# Sólo acepta conexiones desde esta misma computadora.
+address = "127.0.0.1"
+headless = true
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+primaryColor = "#0B6E75"
+backgroundColor = "#F6F8FA"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#172026"
+# Letra más grande para lectura cómoda (Streamlit usa 16 por defecto).
+baseFontSize = 18
+
+[client]
+# Oculta opciones de desarrollo (por ejemplo, "Deploy") a la usuaria final.
+toolbarMode = "minimal"

@@ -1,42 +1,105 @@
+from datetime import datetime
+
 import plotly.express as px
 import streamlit as st
 
-from tamizaje.repository import area_results_frame, cases_frame, last_import
-from tamizaje.ui import DISCLAIMER, LIGHT_COLORS, LIGHT_ORDER, require_context
+from tamizaje.repository import (
+    CLOSED_STATUS,
+    area_results_frame,
+    cases_frame,
+    last_import,
+    operational_counts,
+)
+from tamizaje.ui import (
+    DISCLAIMER,
+    NO_SUBMISSIONS,
+    format_date,
+    page_header,
+    require_context,
+    show_chart,
+)
 
-st.set_page_config(page_title="Resumen · Tamizaje UPY", page_icon="📊", layout="wide")
-st.title("Resumen institucional")
-st.caption(DISCLAIMER)
+page_header("Inicio", "Qué requiere atención hoy y cuál es el siguiente paso.")
 
 engine, connection = require_context()
+today = datetime.now(engine.report_timezone).date()
 latest = last_import(connection)
 results = area_results_frame(connection, engine)
 cases = cases_frame(connection, engine)
+counts = operational_counts(connection, engine, today)
 connection.close()
 
 if latest is None or results.empty:
-    st.info("Aún no hay envíos procesados.")
+    st.info(NO_SUBMISSIONS)
     st.stop()
 
+imported_at = datetime.fromisoformat(latest["imported_at"]).astimezone(
+    engine.report_timezone
+)
 st.caption(
-    f"Última importación: {latest['imported_at'][:16].replace('T', ' ')} UTC · "
-    f"cuestionario v{latest['questionnaire_version']} · "
-    f"scoring v{latest['scoring_version']}"
+    f"Hoy es {today:%d/%m/%Y} · respuestas cargadas el {imported_at:%d/%m/%Y}"
 )
 
-open_cases = cases[cases["case_status"] != "Cerrado"]
-metrics = st.columns(5)
-metrics[0].metric("Alumnos procesados", results["submission_id"].nunique())
-metrics[1].metric("Casos nuevos", int((cases["case_status"] == "Nuevo").sum()))
-metrics[2].metric("Casos pendientes", len(open_cases))
-metrics[3].metric("Solicitudes de contacto", int(cases["requested_contact"].sum()))
-metrics[4].metric("Áreas incompletas", int((results["is_complete"] == 0).sum()))
+metrics = st.columns(4)
+metrics[0].metric("Casos prioritarios", counts["priority_cases"])
+metrics[0].caption(f"Abiertos con nivel {engine.alerts.levels[0]}.")
+metrics[1].metric("Solicitudes de contacto", counts["contact_requests"])
+metrics[1].caption("Alumnos que pidieron que Orientación los contacte.")
+metrics[2].metric("Seguimientos", counts["pending_followups"])
+metrics[2].caption("Pendientes con fecha de hoy o anterior.")
+metrics[3].metric("Alumnos procesados", counts["students"])
+metrics[3].caption("Respondieron el cuestionario.")
+
+st.subheader("Siguientes casos por atender")
+open_cases = cases[cases["case_status"] != CLOSED_STATUS]
+if open_cases.empty:
+    st.success("No hay casos abiertos. No hay acciones pendientes.")
+else:
+    upcoming = open_cases.head(5)
+    st.dataframe(
+        upcoming.assign(
+            requested=upcoming["requested_contact"].map({True: "Sí", False: "No"}),
+            next_follow_up_at=upcoming["next_follow_up_at"].map(format_date),
+        ).rename(
+            columns={
+                "priority": "#",
+                "student_name": "Alumno",
+                "group_name": "Grupo",
+                "case_level": "Nivel",
+                "requested": "Pidió contacto",
+                "case_status": "Estado",
+                "next_follow_up_at": "Seguimiento",
+            }
+        )[
+            [
+                "#",
+                "Alumno",
+                "Grupo",
+                "Nivel",
+                "Pidió contacto",
+                "Estado",
+                "Seguimiento",
+            ]
+        ],
+        hide_index=True,
+        width="stretch",
+        column_config={"#": st.column_config.NumberColumn(width=45)},
+    )
+    st.caption(f"{len(open_cases)} casos abiertos en total.")
+
+links = st.columns(2)
+links[0].page_link(
+    "pages/2_Casos.py", label="Revisar todos los casos", icon=":material/assignment:"
+)
+links[1].page_link(
+    "pages/4_Estudiantes.py", label="Buscar un estudiante", icon=":material/search:"
+)
 
 left, right = st.columns(2)
 with left:
     st.subheader("Casos abiertos por nivel")
     if open_cases.empty:
-        st.write("No hay casos abiertos.")
+        st.write("Sin casos abiertos.")
     else:
         by_level = (
             open_cases.groupby("case_level")
@@ -45,76 +108,69 @@ with left:
             .rename_axis("Nivel")
             .reset_index(name="Casos")
         )
-        st.plotly_chart(
-            px.bar(by_level, x="Nivel", y="Casos", text="Casos"),
-            width="stretch",
+        figure = px.bar(by_level, x="Casos", y="Nivel", orientation="h", text="Casos")
+        figure.update_layout(height=260, margin=dict(l=0, r=0, t=10, b=0))
+        figure.update_yaxes(
+            categoryorder="array", categoryarray=by_level["Nivel"][::-1]
         )
+        show_chart(figure)
 with right:
-    st.subheader("Promedio por área")
+    st.subheader("Áreas con más necesidad")
     averages = (
         results.groupby("area_name", sort=False)["normalized_score"]
         .mean()
         .round(1)
+        .sort_values()
         .rename_axis("Área")
         .reset_index(name="Promedio")
     )
-    st.plotly_chart(
-        px.bar(averages, x="Promedio", y="Área", orientation="h", range_x=[0, 100]),
-        width="stretch",
-    )
-
-st.subheader("Distribución de semáforos por área")
-distribution = (
-    results.groupby(["area_name", "traffic_light"], sort=False)
-    .size()
-    .reset_index(name="Alumnos")
-)
-st.plotly_chart(
-    px.bar(
-        distribution,
-        x="Alumnos",
-        y="area_name",
-        color="traffic_light",
+    figure = px.bar(
+        averages.head(5),
+        x="Promedio",
+        y="Área",
         orientation="h",
-        color_discrete_map=LIGHT_COLORS,
-        category_orders={"traffic_light": LIGHT_ORDER},
-        labels={"area_name": "Área", "traffic_light": "Semáforo"},
-    ),
-    width="stretch",
-)
+        range_x=[0, 100],
+        text="Promedio",
+    )
+    figure.update_layout(height=260, margin=dict(l=0, r=0, t=10, b=0))
+    figure.update_yaxes(autorange="reversed")
+    show_chart(figure)
+    st.caption("Promedio institucional 0–100; 100 = mayor fortaleza.")
 
-st.subheader("Área con menor promedio por grupo")
-group_sizes = results.groupby(["career", "group_name"])["submission_id"].nunique()
-eligible = group_sizes[group_sizes >= engine.minimum_group_size].index
-group_means = (
-    results.set_index(["career", "group_name"])
-    .loc[lambda frame: frame.index.isin(eligible)]
-    .reset_index()
-    .groupby(["career", "group_name", "area_name"])["normalized_score"]
-    .mean()
-    .reset_index()
-)
-if group_means.empty:
-    st.write(
-        f"No hay grupos con al menos {engine.minimum_group_size} alumnos para "
-        "mostrar agregados."
+with st.expander("Área con menor promedio por grupo"):
+    group_sizes = results.groupby(["career", "group_name"])["submission_id"].nunique()
+    eligible = group_sizes[group_sizes >= engine.minimum_group_size].index
+    group_means = (
+        results.set_index(["career", "group_name"])
+        .loc[lambda frame: frame.index.isin(eligible)]
+        .reset_index()
+        .groupby(["career", "group_name", "area_name"])["normalized_score"]
+        .mean()
+        .reset_index()
     )
-else:
-    lowest = group_means.loc[
-        group_means.groupby(["career", "group_name"])["normalized_score"].idxmin()
-    ].rename(
-        columns={
-            "career": "Carrera",
-            "group_name": "Grupo",
-            "area_name": "Área más baja",
-            "normalized_score": "Promedio",
-        }
-    )
-    lowest["Promedio"] = lowest["Promedio"].round(1)
-    st.dataframe(lowest, hide_index=True, width="stretch")
-hidden = int((group_sizes < engine.minimum_group_size).sum())
-if hidden:
-    st.caption(
-        f"{hidden} grupo(s) con menos de {engine.minimum_group_size} alumnos se "
-        "omiten para proteger la confidencialidad."
-    )
+    if group_means.empty:
+        st.write(
+            f"Ningún grupo alcanza {engine.minimum_group_size} alumnos; los "
+            "promedios por grupo se ocultan para proteger la confidencialidad."
+        )
+    else:
+        lowest = group_means.loc[
+            group_means.groupby(["career", "group_name"])["normalized_score"].idxmin()
+        ].rename(
+            columns={
+                "career": "Carrera",
+                "group_name": "Grupo",
+                "area_name": "Área más baja",
+                "normalized_score": "Promedio",
+            }
+        )
+        lowest["Promedio"] = lowest["Promedio"].round(1)
+        st.dataframe(lowest, hide_index=True, width="stretch")
+    hidden = int((group_sizes < engine.minimum_group_size).sum())
+    if hidden:
+        st.caption(
+            f"{hidden} grupo(s) con menos de {engine.minimum_group_size} alumnos "
+            "se omiten para proteger la confidencialidad."
+        )
+
+st.caption(DISCLAIMER)

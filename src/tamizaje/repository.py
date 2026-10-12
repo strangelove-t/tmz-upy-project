@@ -1,12 +1,16 @@
 """Consultas de lectura para las vistas; no modifican la base."""
 
 import sqlite3
+from datetime import date
 from decimal import Decimal
 
 import pandas as pd
 
+from tamizaje.cases import CASE_STATUSES
 from tamizaje.models import EngineConfig
 from tamizaje.triage import TriageComponents, explain_priority, triage_key
+
+CLOSED_STATUS = CASE_STATUSES[-1]
 
 
 def last_import(connection: sqlite3.Connection) -> dict | None:
@@ -89,9 +93,12 @@ def cases_frame(
         )
         for row in frame.itertuples()
     ]
+    names = {area.area_code: area.area_name for area in engine.scoring.areas}
     frame["priority_reason"] = [
-        explain_priority(component, level)
-        for component, level in zip(components, frame["case_level"], strict=True)
+        explain_priority(component, level, names.get(area_code))
+        for component, level, area_code in zip(
+            components, frame["case_level"], frame["critical_area_code"], strict=True
+        )
     ]
     order = sorted(range(len(components)), key=lambda i: triage_key(components[i]))
     frame = frame.iloc[order].reset_index(drop=True)
@@ -166,3 +173,21 @@ def case_notes(connection: sqlite3.Connection, case_id: int) -> pd.DataFrame:
         connection,
         params=(case_id,),
     )
+
+
+def operational_counts(
+    connection: sqlite3.Connection, engine: EngineConfig, today: date
+) -> dict[str, int]:
+    """Pendientes del día: sólo casos abiertos de envíos vigentes."""
+    cases = cases_frame(connection, engine)
+    open_cases = cases[cases["case_status"] != CLOSED_STATUS]
+    follow_up = open_cases["next_follow_up_at"].dropna()
+    results = area_results_frame(connection, engine)
+    return {
+        "priority_cases": int(
+            (open_cases["case_level"] == engine.alerts.levels[0]).sum()
+        ),
+        "contact_requests": int(open_cases["requested_contact"].sum()),
+        "pending_followups": int((follow_up <= today.isoformat()).sum()),
+        "students": int(results["submission_id"].nunique()),
+    }
