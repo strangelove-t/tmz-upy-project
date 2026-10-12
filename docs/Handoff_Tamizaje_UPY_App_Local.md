@@ -1,5 +1,11 @@
 # Handoff técnico — Tamizaje y Orientación UPY
 
+> **Documento de alcance inicial conservado como referencia histórica.** Para
+> el estado implementado y el siguiente bloque aprobado consulta
+> `docs/HANDOFF_2026-10-08.md`. En particular, el cambio de “asesor” a “tutor” y
+> la inclusión opcional de una síntesis sensible están aprobados, pero todavía
+> no implementados.
+
 ## 1. Resumen ejecutivo
 
 Se reemplazará el flujo extenso de Power Automate por un motor local y auditable en Python. Microsoft Forms seguirá utilizándose para la captura. Cuando termine el periodo de aplicación, las respuestas se descargarán como CSV o XLSX y se procesarán por lote.

@@ -6,7 +6,7 @@ diagnósticos psicológicos ni clínicos.
 
 ## Requisitos
 
-- Python 3.12
+- Python 3.12 o 3.13
 - Una computadora institucional con cifrado de disco
 - El repositorio configurado como privado
 
@@ -69,9 +69,11 @@ python scripts/run_acceptance.py
 ```
 
 Procesa sólo las líneas 2–15 en una base temporal y muestra únicamente
-conteos. Los resultados se registran en `docs/checklists/ACEPTACION_PILOTO.md`;
-la importación real permanece bloqueada hasta que la maestra firme la
-autorización de ese checklist.
+conteos. Actualmente el CSV canónico no completa este piloto porque algunas de
+esas 14 filas de prueba repiten el identificador de respuesta; el importador
+las rechaza correctamente como duplicadas. Este pendiente está registrado en
+`docs/checklists/ACEPTACION_PILOTO.md` y debe resolverse sin relajar la
+protección contra duplicados de las importaciones reales.
 
 ## Verificación
 
@@ -111,7 +113,9 @@ ordenadas por frecuencia de uso:
 5. **Reportes**: pestaña *Individual* con vista previa y descarga; pestaña
    *Por lote* con advertencia de confidencialidad, generación en `exports/` y
    manifiesto `correo → archivo`. La fecha usa `report_timezone` y las celdas
-   del manifiesto se protegen contra fórmulas de hojas de cálculo.
+   del manifiesto se protegen contra fórmulas de hojas de cálculo. La versión
+   actual todavía denomina **asesor** al segundo reporte; el cambio a **tutor**
+   está aprobado para el siguiente bloque, no implementado.
 6. **Administración**: importación en cuatro pasos (Archivo, Validación,
    Resumen, Confirmación). El modo de prueba está activo por defecto y nunca
    guarda datos; la importación real exige la autorización firmada, una casilla
@@ -137,6 +141,8 @@ En el archivo actualmente alojado en `data/`:
 - Las líneas 2 a 15 corresponden a 14 registros de prueba.
 - Desde la línea 16 en adelante existen datos reales, sensibles y
   confidenciales.
+- La base local actual contiene 50 envíos procedentes de las líneas 16–65. No
+  deben inspeccionarse ni utilizarse para desarrollo, pruebas o capturas.
 - Sólo el encabezado y las líneas 2 a 15 pueden utilizarse durante el desarrollo
   y las pruebas locales.
 - Los datos reales no deben copiarse a `tests/fixtures/`, logs, documentación,
@@ -152,4 +158,6 @@ no sustituye los controles institucionales de acceso, cifrado y respaldo.
 
 El estado técnico detallado, las decisiones vigentes y el procedimiento para
 continuar se encuentran en `docs/HANDOFF_2026-10-08.md`. Los handoffs
-anteriores se conservan como historial.
+anteriores se conservan como historial. El siguiente bloque aprobado —avisos
+informativos de condiciones declaradas y expedientes comprensibles para tutor—
+está diseñado y planeado, pero todavía no está implementado.

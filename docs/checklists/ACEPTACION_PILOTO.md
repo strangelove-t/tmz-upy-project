@@ -69,6 +69,21 @@ Marcados por el equipo de desarrollo con evidencia de comandos.
   UX/UI) · `ruff check .` sin errores · `compileall` sin
   errores · `git diff --check` sin errores.
 
+### Revisión vigente (2026-10-12, `main`)
+
+- Suite automatizada: **194 pruebas aprobadas**.
+- El CSV canónico sí está disponible localmente, pero
+  `scripts/run_acceptance.py` termina con `DuplicateImportError`: algunas filas
+  de prueba 2–15 repiten el identificador de respuesta. Por ello las casillas
+  del piloto canónico continúan sin marcar. La corrección no debe debilitar la
+  protección de duplicados de las importaciones reales.
+- La base local contiene 50 envíos reales con líneas fuente 16–65, cero filas
+  anteriores a la 16, cero envíos huérfanos y cero violaciones de llaves
+  foráneas. Estos conteos no autorizan nuevas importaciones ni sustituyen la
+  firma institucional.
+- `main` incorpora el diseño y el plan aprobados para condiciones sensibles y
+  reportes para tutor; esa funcionalidad todavía no está implementada.
+
 ## B. Revisión institucional (Orientación y Tutorías)
 
 Sólo la maestra marca estas casillas después de revisar cada contenido.
@@ -84,5 +99,10 @@ Sólo la maestra marca estas casillas después de revisar cada contenido.
 ## C. Autorización
 
 - [ ] La maestra autoriza por escrito procesar las líneas 16 en adelante.
+
+**Conciliación requerida:** existen datos reales ya procesados en la base local,
+pero esta casilla permanece sin evidencia firmada en el repositorio. Antes de
+nuevas importaciones o entregas externas, adjuntar o registrar la autorización
+por el canal institucional correspondiente.
 
 Nombre y firma: ______________________  Fecha: ____________

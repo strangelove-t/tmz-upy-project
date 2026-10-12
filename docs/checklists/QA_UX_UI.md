@@ -82,8 +82,9 @@ capturas se revisaron y se eliminaron al terminar; no se usó el CSV real ni
 
 - El botón del cargador de archivos dice “Upload” y “200MB per file”: es texto
   fijo de Streamlit y no se puede traducir sin componentes adicionales.
-- Con `headless = true` el navegador no se abre solo; la guía de operación
-  indica abrir `http://127.0.0.1:8501`.
+- En la primera ronda, `headless = true` no abría el navegador. Esta limitación
+  quedó superada en A2: `run_windows.bat` usa `--server.headless false`. La URL
+  manual `http://127.0.0.1:8501` se conserva como alternativa.
 - No hay identidad visual oficial de UPY; se usa una apariencia institucional
   neutra hasta contar con colores y logotipo autorizados.
 
@@ -126,3 +127,17 @@ Sólo la maestra marca estas casillas después de la revisión presencial.
 Observaciones: ____________________________________________
 
 Nombre y firma: ______________________  Fecha: ____________
+
+## C. Próximo bloque aprobado (aún no implementado)
+
+La siguiente ronda de QA deberá cubrir el diseño aprobado el 12/10/2026:
+
+- aviso informativo consolidado para `ND`, `SE`, `AP` y `CF`, sin modificar la
+  prioridad;
+- detalle **Condiciones y apoyos** en Casos y Estudiantes;
+- cambio de **asesor** a **tutor**;
+- expediente del tutor sin información sensible por defecto y con inclusión
+  manual explícita;
+- vista previa y PDF con explicación de áreas, semáforo y acciones sugeridas.
+
+Fuente: `docs/superpowers/specs/2026-10-12-condiciones-sensibles-y-reportes-comprensibles-design.md`.

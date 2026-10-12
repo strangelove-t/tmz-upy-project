@@ -111,10 +111,19 @@ muestra únicamente conteos. Resultado esperado: 14 envíos, 126 resultados de
 área, 28 PDF validados y `Resultado: APROBADO`. Registra el resultado en
 `docs\checklists\ACEPTACION_PILOTO.md`.
 
+**Estado actual:** el CSV canónico termina con `DuplicateImportError` porque
+algunas de las 14 filas de prueba repiten el identificador de respuesta. No
+intentes corregir el CSV ni desactivar la validación de duplicados. El equipo de
+desarrollo debe aislar ese caso sólo dentro del piloto y volver a ejecutar este
+procedimiento.
+
 ## 8. Reglas de seguridad
 
 - Usa la aplicación sólo en la computadora institucional con disco cifrado.
 - Conserva el CSV original en una ubicación restringida; no lo copies.
 - No tomes capturas de pantalla con datos de estudiantes.
-- La importación de las líneas 16 en adelante está **bloqueada** hasta que la
-  maestra firme la autorización del checklist de aceptación.
+- La base local ya contiene 50 envíos reales de las líneas 16–65. No vuelvas a
+  importar el mismo archivo ni uses esos datos para pruebas.
+- La evidencia de autorización del checklist sigue pendiente de conciliación
+  documental. Hasta resolverla, no realices nuevas importaciones ni compartas
+  nuevos reportes fuera de la computadora institucional.
