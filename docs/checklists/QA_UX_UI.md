@@ -128,16 +128,26 @@ Observaciones: ____________________________________________
 
 Nombre y firma: ______________________  Fecha: ____________
 
-## C. Próximo bloque aprobado (aún no implementado)
+## C. Condiciones sensibles y reportes comprensibles
 
-La siguiente ronda de QA deberá cubrir el diseño aprobado el 12/10/2026:
+Implementación técnica ejecutada en la rama
+`feature/condiciones-reportes-tutor`. La aceptación presencial permanece
+pendiente:
 
-- aviso informativo consolidado para `ND`, `SE`, `AP` y `CF`, sin modificar la
+- [x] Aviso informativo consolidado para `ND`, `SE`, `AP` y `CF`, sin modificar la
   prioridad;
-- detalle **Condiciones y apoyos** en Casos y Estudiantes;
-- cambio de **asesor** a **tutor**;
-- expediente del tutor sin información sensible por defecto y con inclusión
+- [x] Detalle **Condiciones y apoyos** en Casos y Estudiantes;
+- [x] Cambio de **asesor** a **tutor**;
+- [x] Expediente del tutor sin información sensible por defecto y con inclusión
   manual explícita;
-- vista previa y PDF con explicación de áreas, semáforo y acciones sugeridas.
+- [x] Vista previa y PDF con explicación de áreas, semáforo y acciones sugeridas.
+- [x] Reporte del alumno bloquea la inclusión sensible por contrato.
+- [x] Auditoría registra inclusión o exclusión sin copiar diagnósticos.
+- [x] Cuatro PDF sintéticos revisados: alumno, tutor sin síntesis, tutor con
+      síntesis y tutor con declaración parcial. Los dos primeros excluyeron la
+      sección sensible; los dos últimos mostraron marca confidencial.
+- [x] Suite completa: 212 pruebas; Ruff, `compileall` y `git diff --check` sin
+      errores.
+- [ ] La maestra comprende y aprueba ambos flujos de descarga.
 
 Fuente: `docs/superpowers/specs/2026-10-12-condiciones-sensibles-y-reportes-comprensibles-design.md`.

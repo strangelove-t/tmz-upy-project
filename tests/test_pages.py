@@ -459,3 +459,22 @@ def test_tutor_sensitive_control_defaults_off(sensitive_database) -> None:
     )
     assert control.value is False
     assert any("Expediente para tutor" in option for option in report_type.options)
+
+
+def test_tutor_sensitive_control_resets_when_student_changes(
+    sensitive_database,
+) -> None:
+    app = run_page("5_Reportes.py")
+    report_type = next(radio for radio in app.radio if radio.label == "Tipo de reporte")
+    report_type.set_value("tutor").run()
+    control = next(
+        box for box in app.checkbox if "diagnósticos declarados" in box.label
+    )
+    control.check().run()
+    app.session_state["report_student"] = 2
+    app.run()
+
+    control = next(
+        box for box in app.checkbox if "diagnósticos declarados" in box.label
+    )
+    assert control.value is False

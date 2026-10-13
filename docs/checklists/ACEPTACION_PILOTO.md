@@ -71,7 +71,8 @@ Marcados por el equipo de desarrollo con evidencia de comandos.
 
 ### Revisión vigente (2026-10-12, `main`)
 
-- Suite automatizada: **194 pruebas aprobadas**.
+- Suite automatizada de la rama base: **194 pruebas aprobadas**; la fase de
+  condiciones sensibles cerró con **212 pruebas aprobadas**.
 - El CSV canónico sí está disponible localmente, pero
   `scripts/run_acceptance.py` termina con `DuplicateImportError`: algunas filas
   de prueba 2–15 repiten el identificador de respuesta. Por ello las casillas
@@ -91,7 +92,8 @@ Sólo la maestra marca estas casillas después de revisar cada contenido.
 - [ ] Motivos y acciones sugeridas de `config/alert_rules.csv`.
 - [ ] Textos de `config/recommendations.csv`.
 - [ ] Recursos y leyenda de `templates/student_report.json`.
-- [ ] Áreas del expediente del asesor (`templates/advisor_report.json`).
+- [ ] Áreas y síntesis opcional del expediente para tutor
+      (`templates/tutor_report.json`).
 - [ ] Umbral `minimum_group_size` de `config/parameters.yaml`.
 - [ ] Aceptación del recorrido de la interfaz (sección B de
       `docs/checklists/QA_UX_UI.md`).

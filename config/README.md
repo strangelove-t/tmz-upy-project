@@ -63,6 +63,11 @@ Las alertas se evalúan por separado del scoring mediante:
 - `recommendations.csv`: una recomendación por área y semáforo para la versión
   de scoring activa (27 en v0.2), con texto para el alumno y para el personal.
   Un área incompleta no recibe recomendación.
+- `sensitive_summary.yaml`: categorías, disparadores, etiquetas y campos
+  permitidos para resumir declaraciones `ND`, `SE`, `AP` y `CF`. Esta
+  configuración no participa en scoring ni prioridad.
+- `report_content.yaml`: introducción, leyenda del semáforo, interpretaciones y
+  descripción de las nueve áreas que usan la vista previa y los PDF.
 
 Los textos de motivo, acción sugerida y recomendaciones son una primera
 redacción operativa y requieren validación de Orientación y Tutorías. Para

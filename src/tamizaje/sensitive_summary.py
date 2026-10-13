@@ -144,7 +144,11 @@ def build_sensitive_summary(
         fields = tuple(
             (field.label, normalize_text(responses.get(field.question_code, "")))
             for field in category.fields
-            if _positive(responses.get(field.question_code, ""))
+            if normalize_text(responses.get(field.question_code, ""))
+            and (
+                field.role != "diagnosis"
+                or _positive(responses.get(field.question_code, ""))
+            )
         )
         if trigger_active and not fields:
             fields = (("Condición", "Declarada; detalle no especificado"),)

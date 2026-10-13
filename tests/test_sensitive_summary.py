@@ -103,6 +103,19 @@ def test_diagnosis_without_affirmative_trigger_requires_review(tmp_path) -> None
     connection.close()
 
 
+def test_summary_keeps_relevant_negative_answers(tmp_path) -> None:
+    connection, submission_id = imported_submission(
+        tmp_path, {"ND01": "Sí", "ND02": "TDAH", "ND03": "No"}
+    )
+    questionnaire = load_questionnaire(ROOT / "config" / "questionnaire.csv")
+    config = load_sensitive_config(ROOT / "config", questionnaire)
+
+    summary = build_sensitive_summary(connection, submission_id, config)
+
+    assert ("Confirmación profesional declarada", "No") in summary.categories[0].fields
+    connection.close()
+
+
 def test_summary_is_read_only(tmp_path) -> None:
     connection, submission_id = imported_submission(tmp_path, {"AP01": "Sí"})
     questionnaire = load_questionnaire(ROOT / "config" / "questionnaire.csv")

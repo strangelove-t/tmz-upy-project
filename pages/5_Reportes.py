@@ -76,19 +76,25 @@ with individual_tab:
         ids,
         index=ids.index(target) if target in ids else 0,
         format_func=labels.get,
+        key="report_student",
     )
     report_type = columns[1].radio(
         "Tipo de reporte",
         list(REPORT_LABELS),
         format_func=REPORT_LABELS.get,
+        key="report_type",
     )
     include_sensitive = False
     if report_type == "tutor":
+        report_context = (submission_id, report_type)
+        if st.session_state.get("sensitive_report_context") != report_context:
+            st.session_state["include_sensitive_report"] = False
+            st.session_state["sensitive_report_context"] = report_context
         include_sensitive = st.checkbox(
             "Incluir condiciones de salud, neurodivergencias y diagnósticos "
             "declarados",
             value=False,
-            key=f"include_sensitive_{submission_id}_{report_type}",
+            key="include_sensitive_report",
         )
         if include_sensitive:
             st.warning(
