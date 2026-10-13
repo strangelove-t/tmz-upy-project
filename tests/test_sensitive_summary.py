@@ -7,6 +7,7 @@ from synthetic_forms import project_config, synthetic_rows
 from tamizaje.database import connect_database, import_preview, initialize_database
 from tamizaje.importers import preview_csv
 from tamizaje.questionnaire import load_questionnaire
+from tamizaje.repository import sensitive_notices_frame
 from tamizaje.sensitive_summary import (
     SensitiveConfigError,
     build_sensitive_summary,
@@ -118,4 +119,20 @@ def test_summary_is_read_only(tmp_path) -> None:
         for table in before
     }
     assert after == before
+    connection.close()
+
+
+def test_notices_include_current_submission_without_risk_case(tmp_path) -> None:
+    connection, _ = imported_submission(
+        tmp_path, {"AP01": "Sí", "AP02": "Diagnóstico sintético"}
+    )
+    questionnaire = load_questionnaire(ROOT / "config" / "questionnaire.csv")
+    config = load_sensitive_config(ROOT / "config", questionnaire)
+
+    notices = sensitive_notices_frame(connection, config)
+
+    assert len(notices) == 1
+    assert notices.iloc[0]["category_labels"] == "Personalidad"
+    assert notices.iloc[0]["case_id"] is None
+    assert connection.execute("SELECT COUNT(*) FROM cases").fetchone()[0] == 0
     connection.close()

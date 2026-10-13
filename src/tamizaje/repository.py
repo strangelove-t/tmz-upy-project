@@ -8,6 +8,10 @@ import pandas as pd
 
 from tamizaje.cases import CASE_STATUSES
 from tamizaje.models import EngineConfig
+from tamizaje.sensitive_summary import (
+    SensitiveConfig,
+    build_sensitive_summary,
+)
 from tamizaje.triage import TriageComponents, explain_priority, triage_key
 
 CLOSED_STATUS = CASE_STATUSES[-1]
@@ -119,6 +123,53 @@ def students_frame(connection: sqlite3.Connection) -> pd.DataFrame:
         ORDER BY st.student_name, su.id
         """,
         connection,
+    )
+
+
+def sensitive_notices_frame(
+    connection: sqlite3.Connection, config: SensitiveConfig
+) -> pd.DataFrame:
+    """Avisos informativos vigentes, separados de alertas y casos."""
+    rows = connection.execute(
+        """
+        SELECT su.id, st.student_name, st.group_name, c.id
+        FROM submissions su
+        JOIN students st ON st.id = su.student_id
+        LEFT JOIN cases c ON c.submission_id = su.id AND c.is_active = 1
+        WHERE su.is_current = 1
+        ORDER BY st.student_name, su.id
+        """
+    ).fetchall()
+    notices = []
+    for submission_id, student_name, group_name, case_id in rows:
+        summary = build_sensitive_summary(connection, submission_id, config)
+        if not summary.has_sensitive_declaration:
+            continue
+        notices.append(
+            {
+                "submission_id": submission_id,
+                "student_name": student_name,
+                "group_name": group_name,
+                "category_labels": ", ".join(
+                    item.label for item in summary.categories
+                ),
+                "requested_support": summary.requested_support,
+                "requires_review": summary.requires_review,
+                "case_id": case_id,
+            }
+        )
+    return pd.DataFrame(
+        notices,
+        columns=(
+            "submission_id",
+            "student_name",
+            "group_name",
+            "category_labels",
+            "requested_support",
+            "requires_review",
+            "case_id",
+        ),
+        dtype=object,
     )
 
 

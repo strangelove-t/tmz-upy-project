@@ -11,6 +11,7 @@ from tamizaje.repository import (
     submission_case,
     submission_responses,
 )
+from tamizaje.sensitive_summary import build_sensitive_summary
 from tamizaje.ui import (
     DISCLAIMER,
     LIGHT_COLORS,
@@ -20,7 +21,9 @@ from tamizaje.ui import (
     page_header,
     question_texts,
     require_context,
+    sensitive_config,
     show_chart,
+    show_sensitive_summary,
     status_row,
 )
 
@@ -108,10 +111,16 @@ alerts = submission_alerts(connection, submission_id, engine.alerts.version)
 case = submission_case(connection, submission_id)
 notes = case_notes(connection, case["id"]) if case else None
 responses = submission_responses(connection, submission_id, question_texts())
+summary_config = sensitive_config()
+summary = (
+    build_sensitive_summary(connection, submission_id, summary_config)
+    if summary_config is not None
+    else None
+)
 connection.close()
 
-results_tab, follow_up_tab, responses_tab = st.tabs(
-    ["Resultados", "Seguimiento", "Respuestas"]
+results_tab, follow_up_tab, conditions_tab, responses_tab = st.tabs(
+    ["Resultados", "Seguimiento", "Condiciones y apoyos", "Respuestas"]
 )
 
 with results_tab:
@@ -232,6 +241,12 @@ with follow_up_tab:
                     f"{format_date(note.created_at, engine.report_timezone)}"
                     f"  \n{note.note}"
                 )
+
+with conditions_tab:
+    if summary is None:
+        st.error("No fue posible cargar la configuración de información sensible.")
+    else:
+        show_sensitive_summary(summary)
 
 with responses_tab:
     with st.expander("Respuestas no sensibles"):

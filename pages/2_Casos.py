@@ -9,14 +9,18 @@ from tamizaje.repository import (
     CLOSED_STATUS,
     case_notes,
     cases_frame,
+    sensitive_notices_frame,
     submission_alerts,
 )
+from tamizaje.sensitive_summary import build_sensitive_summary
 from tamizaje.ui import (
     DISCLAIMER,
     area_names,
     format_date,
     page_header,
     require_context,
+    sensitive_config,
+    show_sensitive_summary,
     status_row,
     yes_no,
 )
@@ -45,8 +49,32 @@ for key, default in FILTER_DEFAULTS.items():
 
 engine, connection = require_context()
 cases = cases_frame(connection, engine)
+summary_config = sensitive_config()
+notices = (
+    sensitive_notices_frame(connection, summary_config)
+    if summary_config is not None
+    else None
+)
 if cases.empty:
-    st.info("No hay casos registrados. Los casos se crean al importar respuestas.")
+    if notices is not None and not notices.empty:
+        st.subheader("Avisos informativos")
+        st.dataframe(
+            notices.rename(
+                columns={
+                    "student_name": "Alumno",
+                    "group_name": "Grupo",
+                    "category_labels": "Categorías",
+                }
+            )[["Alumno", "Grupo", "Categorías"]],
+            hide_index=True,
+            width="stretch",
+        )
+        selected_notice = int(notices.iloc[0]["submission_id"])
+        show_sensitive_summary(
+            build_sensitive_summary(connection, selected_notice, summary_config)
+        )
+    else:
+        st.info("No hay casos registrados. Los casos se crean al importar respuestas.")
     connection.close()
     st.stop()
 
@@ -123,6 +151,9 @@ selection = st.dataframe(
         requested_contact=visible["requested_contact"].map(yes_no),
         next_follow_up_at=visible["next_follow_up_at"].map(format_date),
         assigned_to=visible["assigned_to"].fillna("—"),
+        sensitive_information=visible["submission_id"].isin(
+            set(notices["submission_id"]) if notices is not None else set()
+        ).map(yes_no),
     ).rename(
         columns={
             "priority": "#",
@@ -132,8 +163,20 @@ selection = st.dataframe(
             "requested_contact": "Pidió contacto",
             "case_status": "Estado",
             "next_follow_up_at": "Seguimiento",
+            "sensitive_information": "Información sensible",
         }
-    )[["#", "Alumno", "Grupo", "Nivel", "Pidió contacto", "Estado", "Seguimiento"]],
+    )[
+        [
+            "#",
+            "Alumno",
+            "Grupo",
+            "Nivel",
+            "Pidió contacto",
+            "Estado",
+            "Seguimiento",
+            "Información sensible",
+        ]
+    ],
     hide_index=True,
     width="stretch",
     on_select="rerun",
@@ -165,8 +208,8 @@ with st.container(border=True):
         }
     )
 
-reason_tab, follow_up_tab, notes_tab = st.tabs(
-    ["Motivo y alertas", "Seguimiento", "Notas"]
+reason_tab, follow_up_tab, conditions_tab, notes_tab = st.tabs(
+    ["Motivo y alertas", "Seguimiento", "Condiciones y apoyos", "Notas"]
 )
 
 with reason_tab:
@@ -238,6 +281,14 @@ with follow_up_tab:
             st.session_state["cases_saved"] = True
             st.rerun()
 
+with conditions_tab:
+    if summary_config is None:
+        st.error("No fue posible cargar la configuración de información sensible.")
+    else:
+        show_sensitive_summary(
+            build_sensitive_summary(connection, submission_id, summary_config)
+        )
+
 with notes_tab:
     with st.form("case_note", clear_on_submit=True):
         author = st.text_input("Autor")
@@ -258,6 +309,28 @@ with notes_tab:
             f"{format_date(note_row.created_at, engine.report_timezone)}"
         )
         st.write(note_row.note)
+
+if notices is not None and not notices.empty:
+    st.subheader("Avisos informativos")
+    st.caption(
+        "Declaraciones de salud o condición; no cambian el nivel ni el orden de casos."
+    )
+    st.dataframe(
+        notices.rename(
+            columns={
+                "student_name": "Alumno",
+                "group_name": "Grupo",
+                "category_labels": "Categorías",
+                "requested_support": "Solicita apoyo",
+            }
+        ).assign(
+            **{
+                "Solicita apoyo": notices["requested_support"].map(yes_no),
+            }
+        )[["Alumno", "Grupo", "Categorías", "Solicita apoyo"]],
+        hide_index=True,
+        width="stretch",
+    )
 
 connection.close()
 st.caption(DISCLAIMER)

@@ -17,6 +17,12 @@ from tamizaje.models import EngineConfig, EngineConfigError, load_engine_config
 from tamizaje.questionnaire import QuestionnaireCatalogError, load_questionnaire
 from tamizaje.recommendations import RecommendationConfigError
 from tamizaje.scoring_config import ScoringConfigError
+from tamizaje.sensitive_summary import (
+    SensitiveConfig,
+    SensitiveConfigError,
+    SensitiveSummary,
+    load_sensitive_config,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_DIR = PROJECT_ROOT / "config"
@@ -157,6 +163,33 @@ def question_texts() -> dict[str, str]:
         for question in load_questionnaire(CONFIG_DIR / "questionnaire.csv")
         if question.question_code is not None
     }
+
+
+@st.cache_resource
+def sensitive_config() -> SensitiveConfig | None:
+    try:
+        questionnaire = load_questionnaire(CONFIG_DIR / "questionnaire.csv")
+        return load_sensitive_config(CONFIG_DIR, questionnaire)
+    except (OSError, QuestionnaireCatalogError, SensitiveConfigError):
+        return None
+
+
+def show_sensitive_summary(summary: SensitiveSummary) -> None:
+    """Presenta declaraciones sensibles sin tratarlas como riesgo clínico."""
+    if not summary.has_sensitive_declaration:
+        st.info("El alumno no declaró condiciones o diagnósticos en estas secciones.")
+        return
+    st.info(
+        "Información declarada por el alumno. No modifica la prioridad del caso "
+        "ni constituye una valoración de la universidad."
+    )
+    if summary.requires_review:
+        st.warning("Hay respuestas que requieren revisión por posible inconsistencia.")
+    for category in summary.categories:
+        with st.container(border=True):
+            st.markdown(f"**{category.label}**")
+            for label, value in category.fields:
+                st.markdown(f"**{label}:** {value}")
 
 
 def _configured_password_hash() -> str | None:

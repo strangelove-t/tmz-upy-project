@@ -47,6 +47,37 @@ def synthetic_database(tmp_path, monkeypatch):
     return database_path
 
 
+@pytest.fixture
+def sensitive_database(tmp_path, monkeypatch):
+    questionnaire, engine = project_config()
+    content = synthetic_rows(
+        questionnaire,
+        engine,
+        [
+            {"AP01": "Sí", "AP02": "Condición sintética"},
+            {"ND01": "Sí", "ND02": "TDAH sintético", "ND04": "Siempre"},
+        ],
+    )
+    preview = preview_csv(
+        "sensitive-synthetic.csv", content, questionnaire=questionnaire
+    )
+    database_path = tmp_path / "tamizaje.db"
+    connection = connect_database(database_path)
+    initialize_database(connection)
+    import_preview(
+        connection,
+        preview,
+        questionnaire,
+        engine.scoring,
+        alert_config=engine.alerts,
+        recommendations=engine.recommendations,
+    )
+    connection.close()
+    monkeypatch.setattr(ui, "DATABASE_PATH", database_path)
+    monkeypatch.setattr(ui, "EXPORTS_DIR", tmp_path / "exports")
+    return database_path
+
+
 def run_page(name: str, *, authenticated: bool = True):
     if authenticated:
         return run_authenticated_page(name)
@@ -381,3 +412,38 @@ def test_format_date_uses_day_month_year(value, expected) -> None:
     _, engine = project_config()
 
     assert ui.format_date(value, engine.report_timezone) == expected
+
+
+def test_home_counts_sensitive_notices(sensitive_database) -> None:
+    app = run_page("1_Resumen.py")
+
+    metric = next(
+        item for item in app.metric if item.label == "Información declarada por revisar"
+    )
+    assert metric.value == "2"
+
+
+def test_cases_lists_informational_student_without_diagnosis(
+    sensitive_database,
+) -> None:
+    app = run_page("2_Casos.py")
+
+    assert any(header.value == "Avisos informativos" for header in app.subheader)
+    notices = next(
+        frame.value for frame in app.dataframe if "Categorías" in frame.value
+    )
+    assert "Personalidad" in notices["Categorías"].tolist()
+    assert "Condición sintética" not in notices.to_string()
+
+
+def test_student_record_has_structured_sensitive_tab(sensitive_database) -> None:
+    app = run_page("4_Estudiantes.py")
+
+    assert [tab.label for tab in app.tabs] == [
+        "Resultados",
+        "Seguimiento",
+        "Condiciones y apoyos",
+        "Respuestas",
+    ]
+    sensitive = next(toggle for toggle in app.toggle if "sensibles" in toggle.label)
+    assert sensitive.value is False
