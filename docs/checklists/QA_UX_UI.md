@@ -72,8 +72,9 @@ capturas se revisaron y se eliminaron al terminar; no se usó el CSV real ni
 
 ### PDF y repositorio
 
-- [x] PDF sintéticos de alumno y asesor renderizados con `pdftoppm` y revisados
-      (estados verde, amarillo e incompleto).
+- [x] PDF sintéticos de alumno y del entonces denominado expediente para asesor
+      renderizados con `pdftoppm` y revisados (estados verde, amarillo e
+      incompleto).
 - [x] Capturas, base sintética y copia temporal eliminadas.
 - [x] `git ls-files data exports .streamlit/secrets.toml` sólo lista los
       `.gitkeep`.
@@ -130,9 +131,8 @@ Nombre y firma: ______________________  Fecha: ____________
 
 ## C. Condiciones sensibles y reportes comprensibles
 
-Implementación técnica ejecutada en la rama
-`feature/condiciones-reportes-tutor`. La aceptación presencial permanece
-pendiente:
+Implementación técnica integrada en `main` mediante el commit de merge
+`62cdc0a`. La aceptación presencial permanece pendiente:
 
 - [x] Aviso informativo consolidado para `ND`, `SE`, `AP` y `CF`, sin modificar la
   prioridad;

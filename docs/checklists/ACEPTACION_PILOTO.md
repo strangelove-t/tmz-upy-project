@@ -61,18 +61,18 @@ Marcados por el equipo de desarrollo con evidencia de comandos.
 - Respaldo y restauración: copia, sustitución y `PRAGMA integrity_check = ok`
   sobre una base sintética (equivalente Linux de los comandos de
   `docs/OPERACION_LOCAL.md`; falta repetirlo en PowerShell).
-- PDF sintéticos de alumno y asesor renderizados con `pdftoppm` e
-  inspeccionados; los temporales se eliminaron.
+- PDF sintéticos de alumno y del entonces denominado expediente para asesor
+  renderizados con `pdftoppm` e inspeccionados; los temporales se eliminaron.
 - QA visual y de accesibilidad con datos sintéticos: ver
   `docs/checklists/QA_UX_UI.md`.
 - `pytest`: 158 aprobadas al cerrar el plan de acceso (177 tras el bloque
   UX/UI) · `ruff check .` sin errores · `compileall` sin
   errores · `git diff --check` sin errores.
 
-### Revisión vigente (2026-10-12, `main`)
+### Revisión vigente (2026-10-13, `main`)
 
-- Suite automatizada de la rama base: **194 pruebas aprobadas**; la fase de
-  condiciones sensibles cerró con **212 pruebas aprobadas**.
+- Commit integrado: `62cdc0a`. Suite automatizada: **212 pruebas aprobadas**;
+  Ruff, `compileall` y `git diff --check` sin errores.
 - El CSV canónico sí está disponible localmente, pero
   `scripts/run_acceptance.py` termina con `DuplicateImportError`: algunas filas
   de prueba 2–15 repiten el identificador de respuesta. Por ello las casillas
@@ -82,8 +82,9 @@ Marcados por el equipo de desarrollo con evidencia de comandos.
   anteriores a la 16, cero envíos huérfanos y cero violaciones de llaves
   foráneas. Estos conteos no autorizan nuevas importaciones ni sustituyen la
   firma institucional.
-- `main` incorpora el diseño y el plan aprobados para condiciones sensibles y
-  reportes para tutor; esa funcionalidad todavía no está implementada.
+- `main` incorpora el diseño y la implementación de condiciones sensibles y
+  reportes para tutor. La aceptación presencial de esos flujos continúa
+  pendiente en `docs/checklists/QA_UX_UI.md`.
 
 ## B. Revisión institucional (Orientación y Tutorías)
 
