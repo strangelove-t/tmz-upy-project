@@ -84,8 +84,9 @@ python -m ruff check .
 
 ## Fuentes de verdad
 
-El diccionario v1.2, el scoring v0.2, las 44 reglas de alerta v0.1 y las
-recomendaciones por área y semáforo están disponibles en `config/`. Las
+El diccionario v1.2, el scoring v0.2, las 44 reglas de alerta v0.1, las
+recomendaciones, la síntesis sensible y el contenido explicativo de reportes
+están disponibles en `config/`. Las
 plantillas de reportes (lista blanca de campos) están en `templates/`. Consulta
 `config/README.md` antes de cambiar una regla.
 
@@ -106,16 +107,17 @@ ordenadas por frecuencia de uso:
 3. **Estudiantes**: expediente con pestañas *Resultados* (nueve áreas,
    fortalezas, oportunidades y recomendaciones), *Seguimiento* y *Respuestas*
    (las sensibles quedan ocultas hasta activarlas). Si hay varios envíos, aquí
-   se elige el vigente. **Ver reportes del alumno** abre Reportes con el mismo
-   alumno.
+   se elige el vigente. La pestaña *Condiciones y apoyos* resume declaraciones
+   de salud sin modificar la prioridad. **Ver reportes del alumno** abre
+   Reportes con el mismo alumno.
 4. **Grupos**: promedios y semáforos por carrera y grupo. Los grupos con menos
    alumnos que `minimum_group_size` no muestran agregados ni la lista.
 5. **Reportes**: pestaña *Individual* con vista previa y descarga; pestaña
    *Por lote* con advertencia de confidencialidad, generación en `exports/` y
-   manifiesto `correo → archivo`. La fecha usa `report_timezone` y las celdas
-   del manifiesto se protegen contra fórmulas de hojas de cálculo. La versión
-   actual todavía denomina **asesor** al segundo reporte; el cambio a **tutor**
-   está aprobado para el siguiente bloque, no implementado.
+   manifiesto `correo → archivo`. El reporte del alumno nunca incluye
+   diagnósticos; el expediente para tutor permite incluir una síntesis sensible
+   mediante una casilla apagada por defecto. La fecha usa `report_timezone` y
+   las celdas del manifiesto se protegen contra fórmulas de hojas de cálculo.
 6. **Administración**: importación en cuatro pasos (Archivo, Validación,
    Resumen, Confirmación). El modo de prueba está activo por defecto y nunca
    guarda datos; la importación real exige la autorización firmada, una casilla
@@ -158,6 +160,4 @@ no sustituye los controles institucionales de acceso, cifrado y respaldo.
 
 El estado técnico detallado, las decisiones vigentes y el procedimiento para
 continuar se encuentran en `docs/HANDOFF_2026-10-08.md`. Los handoffs
-anteriores se conservan como historial. El siguiente bloque aprobado —avisos
-informativos de condiciones declaradas y expedientes comprensibles para tutor—
-está diseñado y planeado, pero todavía no está implementado.
+anteriores se conservan como historial.

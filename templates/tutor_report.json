@@ -1,0 +1,18 @@
+{
+  "template_version": "2.0",
+  "report_type": "tutor",
+  "title": "Expediente académico para tutoría",
+  "fields": [
+    "student_name",
+    "career",
+    "group_name",
+    "generated_at",
+    "areas",
+    "introduction",
+    "traffic_light_legend",
+    "recommendations",
+    "disclaimer"
+  ],
+  "areas": ["A01", "A02", "A03", "A04"],
+  "disclaimer": "Documento confidencial de uso exclusivo para Orientación y Tutorías. La sección de condiciones declaradas sólo aparece cuando se autoriza expresamente."
+}

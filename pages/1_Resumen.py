@@ -9,6 +9,7 @@ from tamizaje.repository import (
     cases_frame,
     last_import,
     operational_counts,
+    sensitive_notices_frame,
 )
 from tamizaje.ui import (
     DISCLAIMER,
@@ -16,6 +17,7 @@ from tamizaje.ui import (
     format_date,
     page_header,
     require_context,
+    sensitive_config,
     show_chart,
 )
 
@@ -27,6 +29,12 @@ latest = last_import(connection)
 results = area_results_frame(connection, engine)
 cases = cases_frame(connection, engine)
 counts = operational_counts(connection, engine, today)
+summary_config = sensitive_config()
+notices = (
+    sensitive_notices_frame(connection, summary_config)
+    if summary_config is not None
+    else None
+)
 connection.close()
 
 if latest is None or results.empty:
@@ -40,7 +48,7 @@ st.caption(
     f"Hoy es {today:%d/%m/%Y} · respuestas cargadas el {imported_at:%d/%m/%Y}"
 )
 
-metrics = st.columns(4)
+metrics = st.columns(5)
 metrics[0].metric("Casos prioritarios", counts["priority_cases"])
 metrics[0].caption(f"Abiertos con nivel {engine.alerts.levels[0]}.")
 metrics[1].metric("Solicitudes de contacto", counts["contact_requests"])
@@ -49,6 +57,10 @@ metrics[2].metric("Seguimientos", counts["pending_followups"])
 metrics[2].caption("Pendientes con fecha de hoy o anterior.")
 metrics[3].metric("Alumnos procesados", counts["students"])
 metrics[3].caption("Respondieron el cuestionario.")
+metrics[4].metric(
+    "Información declarada por revisar", len(notices) if notices is not None else "—"
+)
+metrics[4].caption("Avisos informativos; no modifican la prioridad.")
 
 st.subheader("Siguientes casos por atender")
 open_cases = cases[cases["case_status"] != CLOSED_STATUS]

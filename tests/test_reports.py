@@ -74,14 +74,14 @@ def test_student_report_excludes_internal_information(imported) -> None:
         assert forbidden not in text
 
 
-def test_advisor_report_only_contains_whitelisted_academic_areas(imported) -> None:
+def test_tutor_report_only_contains_whitelisted_academic_areas(imported) -> None:
     connection, engine, submission_id = imported
     data = build_report_data(
-        connection, submission_id, engine, load_template("advisor")
+        connection, submission_id, engine, load_template("tutor")
     )
     text = flatten(data)
 
-    assert set(data) == set(load_template("advisor").fields)
+    assert set(data) == set(load_template("tutor").fields)
     assert [line.area_code for line in data["areas"]] == ["A01", "A02", "A03", "A04"]
     staff_texts = {r.staff_recommendation for r in engine.recommendations}
     assert all(text in staff_texts for _, text in data["recommendations"])
@@ -91,7 +91,7 @@ def test_advisor_report_only_contains_whitelisted_academic_areas(imported) -> No
 
 def test_template_cannot_request_unauthorized_fields(imported) -> None:
     connection, engine, submission_id = imported
-    template = replace(load_template("advisor"), fields=("student_name", "alerts"))
+    template = replace(load_template("tutor"), fields=("student_name", "alerts"))
 
     with pytest.raises(ReportError, match="no autorizados"):
         build_report_data(connection, submission_id, engine, template)
@@ -108,7 +108,7 @@ def test_report_filename_is_deterministic_and_anonymous() -> None:
 def test_generated_pdf_is_valid(imported) -> None:
     connection, engine, submission_id = imported
 
-    for report_type in ("student", "advisor"):
+    for report_type in ("student", "tutor"):
         filename, content = generate_report(
             connection, submission_id, engine, report_type
         )
@@ -127,7 +127,7 @@ def test_export_batch_writes_manifest_and_audit(imported, tmp_path) -> None:
     assert [row["correo"] for row in rows] == [EMAIL, "otro@example.edu"]
     for row in rows:
         assert (output_dir / row["reporte_estudiante"]).is_file()
-        assert (output_dir / row["expediente_asesor"]).is_file()
+        assert (output_dir / row["expediente_tutor"]).is_file()
     assert connection.execute("SELECT COUNT(*) FROM exports").fetchone()[0] == 4
 
 
@@ -162,3 +162,74 @@ def test_report_date_uses_configured_timezone(imported, monkeypatch) -> None:
         connection, submission_id, engine, load_template("student")
     )
     assert data["generated_at"] == "2026-10-07"
+
+
+def test_student_report_rejects_sensitive_option(imported) -> None:
+    connection, engine, submission_id = imported
+
+    with pytest.raises(ReportError, match="alumno"):
+        generate_report(
+            connection,
+            submission_id,
+            engine,
+            "student",
+            include_sensitive=True,
+        )
+
+
+def test_tutor_report_excludes_sensitive_summary_by_default(imported) -> None:
+    connection, engine, submission_id = imported
+    data = build_report_data(
+        connection, submission_id, engine, load_template("tutor")
+    )
+    assert "sensitive_summary" not in data
+
+
+def test_tutor_report_can_include_whitelisted_summary(imported) -> None:
+    connection, engine, submission_id = imported
+    data = build_report_data(
+        connection,
+        submission_id,
+        engine,
+        load_template("tutor"),
+        include_sensitive=True,
+    )
+    assert data["sensitive_summary"].has_sensitive_declaration
+    assert "Texto abierto sintético" not in repr(data)
+
+
+def test_report_explains_traffic_lights_and_areas(imported) -> None:
+    connection, engine, submission_id = imported
+    data = build_report_data(
+        connection, submission_id, engine, load_template("student")
+    )
+    assert set(data["traffic_light_legend"]) == {
+        "Verde",
+        "Amarillo",
+        "Rojo",
+        "Pendiente de revisión",
+    }
+    assert all(line.description for line in data["areas"])
+    assert all(line.interpretation for line in data["areas"])
+
+
+def test_export_audit_records_sensitive_choice(imported, tmp_path) -> None:
+    connection, engine, _ = imported
+    export_batch(
+        connection,
+        engine,
+        tmp_path / "exports-sensitive",
+        include_sensitive_tutor=True,
+    )
+    flags = connection.execute(
+        "SELECT export_type, includes_sensitive_summary FROM exports ORDER BY id"
+    ).fetchall()
+    assert flags == [("student", 0), ("tutor", 1), ("student", 0), ("tutor", 1)]
+
+
+def test_exports_schema_has_sensitive_summary_flag(imported) -> None:
+    connection, _, _ = imported
+    columns = {
+        row[1] for row in connection.execute("PRAGMA table_info(exports)").fetchall()
+    }
+    assert "includes_sensitive_summary" in columns

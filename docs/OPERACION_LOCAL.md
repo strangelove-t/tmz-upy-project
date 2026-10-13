@@ -88,6 +88,12 @@ hasta confirmar que la restauración es correcta; después elimínala.
 
 ## 6. Reportes exportados
 
+- El **Reporte del alumno** nunca incluye diagnósticos ni condiciones de salud.
+- El **Expediente para tutor** excluye esa información por defecto. La casilla
+  para incluirla debe activarse conscientemente para cada alumno o lote y
+  muestra una advertencia antes de generar el PDF.
+- En lotes sensibles se requiere una segunda confirmación. La auditoría registra
+  si el archivo incluyó la síntesis, pero no copia diagnósticos al registro.
 - La generación por lote escribe en `exports\<fecha-hora>\` los PDFs y
   `manifiesto.csv`. Contienen información confidencial.
 - Entrega los archivos sólo por los canales institucionales autorizados.

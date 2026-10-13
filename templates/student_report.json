@@ -1,5 +1,5 @@
 {
-  "template_version": "1.0",
+  "template_version": "2.0",
   "report_type": "student",
   "title": "Reporte de tamizaje y orientación",
   "fields": [
@@ -8,6 +8,8 @@
     "group_name",
     "generated_at",
     "scoring_version",
+    "introduction",
+    "traffic_light_legend",
     "areas",
     "strengths",
     "opportunities",
