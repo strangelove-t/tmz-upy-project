@@ -168,7 +168,9 @@ def initialize_database(connection: sqlite3.Connection) -> None:
             export_type TEXT NOT NULL,
             generated_at TEXT NOT NULL,
             file_path TEXT NOT NULL,
-            template_version TEXT NOT NULL
+            template_version TEXT NOT NULL,
+            includes_sensitive_summary INTEGER NOT NULL DEFAULT 0
+                CHECK (includes_sensitive_summary IN (0, 1))
         );
         """
     )
@@ -179,6 +181,14 @@ def initialize_database(connection: sqlite3.Connection) -> None:
         connection.execute(
             "ALTER TABLE cases ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1 "
             "CHECK (is_active IN (0, 1))"
+        )
+    export_columns = {
+        row[1] for row in connection.execute("PRAGMA table_info(exports)").fetchall()
+    }
+    if "includes_sensitive_summary" not in export_columns:
+        connection.execute(
+            "ALTER TABLE exports ADD COLUMN includes_sensitive_summary "
+            "INTEGER NOT NULL DEFAULT 0 CHECK (includes_sensitive_summary IN (0, 1))"
         )
 
 
@@ -493,12 +503,21 @@ def record_export(
     export_type: str,
     file_path: str,
     template_version: str,
+    includes_sensitive_summary: bool = False,
 ) -> None:
     with connection:
         connection.execute(
             "INSERT INTO exports (submission_id, export_type, generated_at, "
-            "file_path, template_version) VALUES (?, ?, ?, ?, ?)",
-            (submission_id, export_type, _now(), file_path, template_version),
+            "file_path, template_version, includes_sensitive_summary) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                submission_id,
+                export_type,
+                _now(),
+                file_path,
+                template_version,
+                int(includes_sensitive_summary),
+            ),
         )
 
 

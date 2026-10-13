@@ -447,3 +447,15 @@ def test_student_record_has_structured_sensitive_tab(sensitive_database) -> None
     ]
     sensitive = next(toggle for toggle in app.toggle if "sensibles" in toggle.label)
     assert sensitive.value is False
+
+
+def test_tutor_sensitive_control_defaults_off(sensitive_database) -> None:
+    app = run_page("5_Reportes.py")
+    report_type = next(radio for radio in app.radio if radio.label == "Tipo de reporte")
+    report_type.set_value("tutor").run()
+
+    control = next(
+        box for box in app.checkbox if "diagnósticos declarados" in box.label
+    )
+    assert control.value is False
+    assert any("Expediente para tutor" in option for option in report_type.options)

@@ -162,7 +162,7 @@ def run_pilot(
             pdf_dir.mkdir()
             pdf_count = 0
             for submission_id in submission_ids:
-                for report_type in ("student", "advisor"):
+                for report_type in ("student", "tutor"):
                     name, pdf = generate_report(
                         connection, submission_id, engine, report_type
                     )

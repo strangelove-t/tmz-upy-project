@@ -1,0 +1,24 @@
+version: "1.0"
+introduction: >-
+  Este instrumento ayuda a reconocer fortalezas y áreas que pueden beneficiarse
+  de acompañamiento. Sus resultados orientan apoyos y no constituyen un diagnóstico.
+traffic_light_legend:
+  Verde: "Fortaleza: recursos favorables que conviene mantener."
+  Amarillo: "Conviene dar seguimiento: puede beneficiarse de orientación o apoyo preventivo."
+  Rojo: "Requiere atención: conviene revisar el área y acordar acciones de apoyo."
+  Pendiente de revisión: "No hubo información suficiente para interpretar el área."
+interpretations:
+  Verde: "El resultado muestra recursos favorables en esta área."
+  Amarillo: "El resultado sugiere revisar esta área y ofrecer seguimiento preventivo."
+  Rojo: "El resultado sugiere acordar acciones de apoyo en esta área."
+  Pendiente de revisión: "No hay información suficiente para interpretar esta área."
+areas:
+  A01: "Preparación percibida para responder a las exigencias académicas iniciales."
+  A02: "Organización del tiempo, concentración y hábitos cotidianos de estudio."
+  A03: "Interés por la carrera, claridad de metas y motivación para continuar."
+  A04: "Adaptación al ritmo universitario, integración y capacidad para pedir ayuda."
+  A05: "Disponibilidad de recursos económicos y materiales para continuar estudiando."
+  A06: "Apoyo familiar y red personal disponible ante dificultades."
+  A07: "Impacto funcional del bienestar emocional en las actividades académicas."
+  A08: "Impacto funcional de condiciones físicas o de salud en la vida universitaria."
+  A09: "Percepción de continuidad, elección de carrera y necesidades de apoyo."

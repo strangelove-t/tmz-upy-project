@@ -11,6 +11,7 @@ from decimal import Decimal
 from html import escape
 from pathlib import Path
 
+import yaml
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
@@ -19,8 +20,15 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, Tabl
 
 from tamizaje.database import record_export
 from tamizaje.models import EngineConfig
+from tamizaje.questionnaire import load_questionnaire
+from tamizaje.sensitive_summary import (
+    SensitiveSummary,
+    build_sensitive_summary,
+    load_sensitive_config,
+)
 
 TEMPLATES_DIR = Path(__file__).parents[2] / "templates"
+CONFIG_DIR = Path(__file__).parents[2] / "config"
 LIGHT_COLORS = {
     "Verde": colors.HexColor("#2e7d32"),
     "Amarillo": colors.HexColor("#b28704"),
@@ -50,6 +58,50 @@ class AreaLine:
     score: Decimal | None
     traffic_light: str | None
     recommendation: str | None
+    description: str
+    interpretation: str
+
+
+@dataclass(frozen=True)
+class ReportContent:
+    introduction: str
+    traffic_light_legend: dict[str, str]
+    interpretations: dict[str, str]
+    areas: dict[str, str]
+
+
+def load_report_content(
+    engine: EngineConfig, config_dir: Path = CONFIG_DIR
+) -> ReportContent:
+    try:
+        raw = yaml.safe_load(
+            (config_dir / "report_content.yaml").read_text(encoding="utf-8")
+        )
+        content = ReportContent(
+            introduction=str(raw["introduction"]),
+            traffic_light_legend={
+                str(key): str(value)
+                for key, value in raw["traffic_light_legend"].items()
+            },
+            interpretations={
+                str(key): str(value)
+                for key, value in raw["interpretations"].items()
+            },
+            areas={str(key): str(value) for key, value in raw["areas"].items()},
+        )
+    except (OSError, KeyError, TypeError, yaml.YAMLError, AttributeError) as error:
+        raise ReportError(
+            "El contenido explicativo del reporte es inválido."
+        ) from error
+    area_codes = {area.area_code for area in engine.scoring.areas}
+    if set(content.areas) != area_codes:
+        raise ReportError("Las descripciones no cubren exactamente las áreas activas.")
+    expected = {"Verde", "Amarillo", "Rojo", "Pendiente de revisión"}
+    if set(content.traffic_light_legend) != expected or set(
+        content.interpretations
+    ) != expected:
+        raise ReportError("La explicación del semáforo está incompleta.")
+    return content
 
 
 def load_template(report_type: str, templates_dir: Path = TEMPLATES_DIR):
@@ -90,6 +142,7 @@ def _area_lines(
     area_codes: tuple[str, ...] | None,
     audience: str,
 ) -> list[AreaLine]:
+    content = load_report_content(engine)
     recommendation_text = {
         recommendation.recommendation_code: (
             recommendation.student_recommendation
@@ -121,6 +174,10 @@ def _area_lines(
                 score=Decimal(score) if complete and score is not None else None,
                 traffic_light=light if complete else None,
                 recommendation=recommendation_text.get(recommendation_code),
+                description=content.areas[area.area_code],
+                interpretation=content.interpretations[
+                    light if complete and light is not None else "Pendiente de revisión"
+                ],
             )
         )
     return lines
@@ -131,6 +188,8 @@ def build_report_data(
     submission_id: int,
     engine: EngineConfig,
     template: ReportTemplate,
+    *,
+    include_sensitive: bool = False,
 ) -> dict:
     """Construye sólo los campos de la lista blanca de la plantilla.
 
@@ -148,12 +207,15 @@ def build_report_data(
     lines = _area_lines(
         connection, submission_id, engine, template.areas, template.report_type
     )
+    content = load_report_content(engine)
     available = {
         "student_name": row[0],
         "career": row[1],
         "group_name": row[2],
         "generated_at": datetime.now(engine.report_timezone).strftime("%Y-%m-%d"),
         "scoring_version": engine.scoring.version,
+        "introduction": content.introduction,
+        "traffic_light_legend": content.traffic_light_legend,
         "areas": lines,
         "strengths": [
             line.area_name for line in lines if line.traffic_light == "Verde"
@@ -174,7 +236,16 @@ def build_report_data(
     unknown = set(template.fields) - available.keys()
     if unknown:
         raise ReportError(f"Campos no autorizados en la plantilla: {sorted(unknown)}")
-    return {field: available[field] for field in template.fields}
+    data = {field: available[field] for field in template.fields}
+    if include_sensitive:
+        if template.report_type != "tutor":
+            raise ReportError("El reporte del alumno no admite información sensible.")
+        questionnaire = load_questionnaire(CONFIG_DIR / "questionnaire.csv")
+        config = load_sensitive_config(CONFIG_DIR, questionnaire)
+        data["sensitive_summary"] = build_sensitive_summary(
+            connection, submission_id, config
+        )
+    return data
 
 
 def render_pdf(data: dict, template: ReportTemplate) -> bytes:
@@ -206,9 +277,22 @@ def render_pdf(data: dict, template: ReportTemplate) -> bytes:
         )
         story += [table, Spacer(1, 0.4 * cm)]
 
+    if data.get("introduction"):
+        story += [
+            Paragraph(escape(data["introduction"]), body),
+            Spacer(1, 0.3 * cm),
+        ]
+
+    if data.get("traffic_light_legend"):
+        story.append(Paragraph("Cómo leer el semáforo", styles["Heading2"]))
+        for label, explanation in data["traffic_light_legend"].items():
+            story.append(
+                Paragraph(f"<b>{escape(label)}:</b> {escape(explanation)}", body)
+            )
+
     if "areas" in data:
         story.append(Paragraph("Resultados por área", styles["Heading2"]))
-        rows = [["Área", "Puntaje", "Semáforo"]]
+        rows = [["Área e interpretación", "Puntaje", "Semáforo"]]
         style = [
             ("GRID", (0, 0), (-1, -1), 0.4, colors.grey),
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#eeeeee")),
@@ -216,7 +300,12 @@ def render_pdf(data: dict, template: ReportTemplate) -> bytes:
         for index, line in enumerate(data["areas"], start=1):
             rows.append(
                 [
-                    Paragraph(escape(line.area_name), body),
+                    Paragraph(
+                        f"<b>{escape(line.area_name)}</b><br/>"
+                        f"{escape(line.description)}<br/>"
+                        f"{escape(line.interpretation)}",
+                        body,
+                    ),
                     f"{line.score:.1f}" if line.score is not None else "—",
                     line.traffic_light or "Pendiente de revisión",
                 ]
@@ -240,7 +329,7 @@ def render_pdf(data: dict, template: ReportTemplate) -> bytes:
         heading = (
             "Recomendaciones para ti"
             if template.report_type == "student"
-            else "Acciones sugeridas para la asesoría"
+            else "Acciones sugeridas para la tutoría"
         )
         story.append(Paragraph(heading, styles["Heading2"]))
         for area_name, text in data["recommendations"]:
@@ -252,6 +341,20 @@ def render_pdf(data: dict, template: ReportTemplate) -> bytes:
         story.append(Paragraph("Recursos institucionales", styles["Heading2"]))
         for resource in data["resources"]:
             story.append(Paragraph(f"• {escape(resource)}", body))
+
+    sensitive: SensitiveSummary | None = data.get("sensitive_summary")
+    if sensitive is not None and sensitive.has_sensitive_declaration:
+        story.append(Paragraph("Condiciones y apoyos declarados", styles["Heading2"]))
+        story.append(
+            Paragraph(
+                "<b>Confidencial — uso exclusivo de Orientación y Tutorías.</b>",
+                body,
+            )
+        )
+        for category in sensitive.categories:
+            story.append(Paragraph(f"<b>{escape(category.label)}</b>", body))
+            for label, value in category.fields:
+                story.append(Paragraph(f"{escape(label)}: {escape(value)}", body))
 
     disclaimer = Paragraph(f"<i>{escape(template.disclaimer)}</i>", body)
     story += [Spacer(1, 0.6 * cm), disclaimer]
@@ -274,6 +377,8 @@ def generate_report(
     submission_id: int,
     engine: EngineConfig,
     report_type: str,
+    *,
+    include_sensitive: bool = False,
 ) -> tuple[str, bytes]:
     template = load_template(report_type)
     external_id = connection.execute(
@@ -281,12 +386,22 @@ def generate_report(
     ).fetchone()
     if external_id is None:
         raise ReportError("El envío no existe.")
-    data = build_report_data(connection, submission_id, engine, template)
+    data = build_report_data(
+        connection,
+        submission_id,
+        engine,
+        template,
+        include_sensitive=include_sensitive,
+    )
     return report_filename(report_type, external_id[0]), render_pdf(data, template)
 
 
 def export_batch(
-    connection: sqlite3.Connection, engine: EngineConfig, output_dir: Path
+    connection: sqlite3.Connection,
+    engine: EngineConfig,
+    output_dir: Path,
+    *,
+    include_sensitive_tutor: bool = False,
 ) -> Path:
     """Genera ambos PDFs de cada envío vigente y un manifiesto correo → archivo."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -298,12 +413,17 @@ def export_batch(
     manifest_path = output_dir / "manifiesto.csv"
     with manifest_path.open("w", encoding="utf-8-sig", newline="") as stream:
         writer = csv.writer(stream)
-        writer.writerow(["correo", "nombre", "reporte_estudiante", "expediente_asesor"])
+        writer.writerow(["correo", "nombre", "reporte_estudiante", "expediente_tutor"])
         for submission_id, email, name in submissions:
             files = []
-            for report_type in ("student", "advisor"):
+            for report_type in ("student", "tutor"):
+                includes_sensitive = report_type == "tutor" and include_sensitive_tutor
                 filename, content = generate_report(
-                    connection, submission_id, engine, report_type
+                    connection,
+                    submission_id,
+                    engine,
+                    report_type,
+                    include_sensitive=includes_sensitive,
                 )
                 (output_dir / filename).write_bytes(content)
                 record_export(
@@ -312,6 +432,7 @@ def export_batch(
                     report_type,
                     str(output_dir / filename),
                     load_template(report_type).template_version,
+                    includes_sensitive_summary=includes_sensitive,
                 )
                 files.append(filename)
             writer.writerow([_spreadsheet_safe(email), _spreadsheet_safe(name), *files])

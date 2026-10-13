@@ -13,12 +13,17 @@ from tamizaje.reports import (
     load_template,
 )
 from tamizaje.repository import students_frame
-from tamizaje.ui import NO_SUBMISSIONS, page_header, require_context
+from tamizaje.ui import (
+    NO_SUBMISSIONS,
+    page_header,
+    require_context,
+    show_sensitive_summary,
+)
 
 page_header(
     "Reportes",
     "Sólo incluyen campos autorizados: el del alumno no lleva alertas ni notas "
-    "internas; el del asesor excluye salud, respuestas abiertas y alertas.",
+    "internas; el del tutor sólo incluye condiciones declaradas si lo autorizas.",
 )
 
 engine, connection = require_context()
@@ -31,11 +36,16 @@ if students.empty:
 
 REPORT_LABELS = {
     "student": "Reporte del alumno",
-    "advisor": "Expediente para asesor",
+    "tutor": "Expediente para tutor",
 }
 
 
-def log_download(submission_id: int, report_type: str, filename: str) -> None:
+def log_download(
+    submission_id: int,
+    report_type: str,
+    filename: str,
+    includes_sensitive: bool,
+) -> None:
     log_connection = connect_database(ui.DATABASE_PATH)
     record_export(
         log_connection,
@@ -43,6 +53,7 @@ def log_download(submission_id: int, report_type: str, filename: str) -> None:
         report_type,
         f"descarga:{filename}",
         load_template(report_type).template_version,
+        includes_sensitive_summary=includes_sensitive,
     )
     log_connection.close()
 
@@ -71,12 +82,35 @@ with individual_tab:
         list(REPORT_LABELS),
         format_func=REPORT_LABELS.get,
     )
+    include_sensitive = False
+    if report_type == "tutor":
+        include_sensitive = st.checkbox(
+            "Incluir condiciones de salud, neurodivergencias y diagnósticos "
+            "declarados",
+            value=False,
+            key=f"include_sensitive_{submission_id}_{report_type}",
+        )
+        if include_sensitive:
+            st.warning(
+                "El PDF incluirá información sensible. Compártelo únicamente "
+                "con personal autorizado de Orientación y Tutorías."
+            )
 
     try:
         template = load_template(report_type)
-        data = build_report_data(connection, submission_id, engine, template)
+        data = build_report_data(
+            connection,
+            submission_id,
+            engine,
+            template,
+            include_sensitive=include_sensitive,
+        )
         filename, content = generate_report(
-            connection, submission_id, engine, report_type
+            connection,
+            submission_id,
+            engine,
+            report_type,
+            include_sensitive=include_sensitive,
         )
     except ReportError as error:
         st.error(f"No fue posible generar el reporte: {error}")
@@ -90,22 +124,23 @@ with individual_tab:
                     if field in data
                 )
             )
-            st.dataframe(
-                [
-                    {
-                        "Área": line.area_name,
-                        "Puntaje": (
-                            f"{line.score:.1f}" if line.score is not None else "—"
-                        ),
-                        "Semáforo": line.traffic_light or "Pendiente de revisión",
-                    }
-                    for line in data["areas"]
-                ],
-                hide_index=True,
-                width="stretch",
-            )
+            st.write(data.get("introduction", ""))
+            st.markdown("**Cómo leer el semáforo**")
+            for label, explanation in data.get("traffic_light_legend", {}).items():
+                st.markdown(f"**{label}:** {explanation}")
+            for line in data["areas"]:
+                status = line.traffic_light or "Pendiente de revisión"
+                with st.expander(f"{line.area_name} · {status}"):
+                    st.write(line.description)
+                    st.metric(
+                        "Puntaje",
+                        f"{line.score:.1f} de 100" if line.score is not None else "—",
+                    )
+                    st.write(line.interpretation)
             for area_name, text in data.get("recommendations", []):
                 st.markdown(f"**{area_name}:** {text}")
+            if "sensitive_summary" in data:
+                show_sensitive_summary(data["sensitive_summary"])
             st.caption(template.disclaimer)
         st.download_button(
             f"Descargar {REPORT_LABELS[report_type].lower()} (PDF)",
@@ -113,7 +148,7 @@ with individual_tab:
             file_name=filename,
             mime="application/pdf",
             on_click=log_download,
-            args=(submission_id, report_type, filename),
+            args=(submission_id, report_type, filename, include_sensitive),
             type="primary",
             icon=":material/download:",
         )
@@ -125,17 +160,35 @@ with batch_tab:
         "canales institucionales autorizados."
     )
     st.write(
-        f"Genera el reporte del alumno y el expediente para asesor de "
+        f"Genera el reporte del alumno y el expediente para tutor de "
         f"{len(students)} alumnos, más una lista de qué archivo corresponde a "
         "cada correo."
     )
     confirm = st.checkbox("Entiendo que los archivos generados son confidenciales.")
-    if st.button("Generar todos los reportes", disabled=not confirm):
+    batch_sensitive = st.checkbox(
+        "Incluir condiciones y diagnósticos declarados en todos los expedientes "
+        "para tutor",
+        value=False,
+    )
+    sensitive_confirm = st.checkbox(
+        "Confirmo que los tutores están autorizados para recibir esta información.",
+        value=False,
+        disabled=not batch_sensitive,
+    )
+    if st.button(
+        "Generar todos los reportes",
+        disabled=not confirm or (batch_sensitive and not sensitive_confirm),
+    ):
         output_dir = ui.EXPORTS_DIR / datetime.now(engine.report_timezone).strftime(
             "%Y%m%d-%H%M%S"
         )
         with st.spinner("Generando reportes…"):
-            manifest = export_batch(connection, engine, output_dir)
+            manifest = export_batch(
+                connection,
+                engine,
+                output_dir,
+                include_sensitive_tutor=batch_sensitive,
+            )
         st.session_state["manifest"] = str(manifest)
     if "manifest" in st.session_state:
         manifest_path = Path(st.session_state["manifest"])
