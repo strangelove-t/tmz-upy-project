@@ -1,0 +1,46 @@
+version: "1.0"
+categories:
+  - code: neurodevelopment
+    label: Neurodivergencia
+    trigger_question: ND01
+    affirmative_values: ["Sí"]
+    fields:
+      - {question_code: ND02, label: Condición o diagnóstico declarado, role: diagnosis}
+      - {question_code: ND03, label: Confirmación profesional declarada, role: professional}
+      - {question_code: ND04, label: Afectación actual, role: impact}
+      - {question_code: ND05, label: Apoyos utilizados anteriormente, role: prior_support}
+      - {question_code: ND06, label: Necesita apoyo de la universidad, role: requested_support}
+      - {question_code: ND07, label: Apoyo académico solicitado, role: requested_support}
+  - code: mental_health
+    label: Salud emocional o mental
+    trigger_question: SE01
+    affirmative_values: ["Sí"]
+    fields:
+      - {question_code: SE02, label: Condición o diagnóstico declarado, role: diagnosis}
+      - {question_code: SE03, label: Atención actual declarada, role: treatment}
+      - {question_code: SE04, label: Interferencia actual con los estudios, role: impact}
+      - {question_code: SE05, label: Dificultad de concentración, role: impact}
+      - {question_code: SE06, label: Dificultad para actividades académicas, role: impact}
+      - {question_code: SE07, label: Interrupción previa de estudios, role: impact}
+      - {question_code: SE08, label: Apoyo psicológico u orientación solicitado, role: requested_support}
+  - code: personality
+    label: Personalidad
+    trigger_question: AP01
+    affirmative_values: ["Sí"]
+    fields:
+      - {question_code: AP02, label: Diagnóstico declarado, role: diagnosis}
+      - {question_code: AP03, label: Apoyo o seguimiento requerido, role: requested_support}
+      - {question_code: AP04, label: Recomendación profesional declarada, role: recommendation}
+  - code: physical_health
+    label: Condición física, sensorial o de salud
+    trigger_question: CF01
+    affirmative_values: ["Sí"]
+    fields:
+      - {question_code: CF02, label: Condición declarada, role: diagnosis}
+      - {question_code: CF03, label: Atención o tratamiento actual, role: treatment}
+      - {question_code: CF04, label: Posible dificultad de asistencia, role: impact}
+      - {question_code: CF05, label: Posible dificultad en actividades prácticas, role: impact}
+      - {question_code: CF06, label: Utiliza apoyo o dispositivo, role: prior_support}
+      - {question_code: CF07, label: Apoyo o dispositivo declarado, role: prior_support}
+      - {question_code: CF08, label: Adecuación o apoyo solicitado, role: requested_support}
+      - {question_code: CF09, label: Recomendación profesional declarada, role: recommendation}
