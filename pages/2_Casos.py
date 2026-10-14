@@ -56,25 +56,13 @@ notices = (
     else None
 )
 if cases.empty:
+    st.info("No hay casos registrados. Los casos se crean al importar respuestas.")
     if notices is not None and not notices.empty:
-        st.subheader("Avisos informativos")
-        st.dataframe(
-            notices.rename(
-                columns={
-                    "student_name": "Alumno",
-                    "group_name": "Grupo",
-                    "category_labels": "Categorías",
-                }
-            )[["Alumno", "Grupo", "Categorías"]],
-            hide_index=True,
-            width="stretch",
+        st.page_link(
+            "pages/7_Condiciones.py",
+            label=f"{len(notices)} alumnos declararon condiciones: ver y filtrar",
+            icon=":material/health_and_safety:",
         )
-        selected_notice = int(notices.iloc[0]["submission_id"])
-        show_sensitive_summary(
-            build_sensitive_summary(connection, selected_notice, summary_config)
-        )
-    else:
-        st.info("No hay casos registrados. Los casos se crean al importar respuestas.")
     connection.close()
     st.stop()
 
@@ -151,9 +139,13 @@ selection = st.dataframe(
         requested_contact=visible["requested_contact"].map(yes_no),
         next_follow_up_at=visible["next_follow_up_at"].map(format_date),
         assigned_to=visible["assigned_to"].fillna("—"),
-        sensitive_information=visible["submission_id"].isin(
-            set(notices["submission_id"]) if notices is not None else set()
-        ).map(yes_no),
+        sensitive_information=visible["submission_id"]
+        .map(
+            dict(zip(notices["submission_id"], notices["category_labels"]))
+            if notices is not None
+            else {}
+        )
+        .fillna("No"),
     ).rename(
         columns={
             "priority": "#",
@@ -163,7 +155,7 @@ selection = st.dataframe(
             "requested_contact": "Pidió contacto",
             "case_status": "Estado",
             "next_follow_up_at": "Seguimiento",
-            "sensitive_information": "Información sensible",
+            "sensitive_information": "Condición declarada",
         }
     )[
         [
@@ -174,7 +166,7 @@ selection = st.dataframe(
             "Pidió contacto",
             "Estado",
             "Seguimiento",
-            "Información sensible",
+            "Condición declarada",
         ]
     ],
     hide_index=True,
@@ -309,28 +301,6 @@ with notes_tab:
             f"{format_date(note_row.created_at, engine.report_timezone)}"
         )
         st.write(note_row.note)
-
-if notices is not None and not notices.empty:
-    st.subheader("Avisos informativos")
-    st.caption(
-        "Declaraciones de salud o condición; no cambian el nivel ni el orden de casos."
-    )
-    st.dataframe(
-        notices.rename(
-            columns={
-                "student_name": "Alumno",
-                "group_name": "Grupo",
-                "category_labels": "Categorías",
-                "requested_support": "Solicita apoyo",
-            }
-        ).assign(
-            **{
-                "Solicita apoyo": notices["requested_support"].map(yes_no),
-            }
-        )[["Alumno", "Grupo", "Categorías", "Solicita apoyo"]],
-        hide_index=True,
-        width="stretch",
-    )
 
 connection.close()
 st.caption(DISCLAIMER)

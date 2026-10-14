@@ -57,6 +57,11 @@ class NavigationPage:
 NAVIGATION = (
     NavigationPage("pages/1_Resumen.py", "Inicio", ":material/home:"),
     NavigationPage("pages/2_Casos.py", "Casos", ":material/assignment:"),
+    NavigationPage(
+        "pages/7_Condiciones.py",
+        "Condiciones declaradas",
+        ":material/health_and_safety:",
+    ),
     NavigationPage("pages/4_Estudiantes.py", "Estudiantes", ":material/school:"),
     NavigationPage("pages/3_Grupos.py", "Grupos", ":material/groups:"),
     NavigationPage("pages/5_Reportes.py", "Reportes", ":material/description:"),

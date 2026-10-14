@@ -94,7 +94,7 @@ plantillas de reportes (lista blanca de campos) están en `templates/`. Consulta
 
 `run_windows.bat` abre el navegador automáticamente. Para terminar se usa el
 botón **Salir de la aplicación**, que cierra la sesión y apaga el servidor.
-Después de escribir la contraseña, el menú lateral muestra seis páginas,
+Después de escribir la contraseña, el menú lateral muestra siete páginas,
 ordenadas por frecuencia de uso:
 
 1. **Inicio**: casos prioritarios, solicitudes de contacto, seguimientos
@@ -103,16 +103,23 @@ ordenadas por frecuencia de uso:
 2. **Casos**: lista priorizada con búsqueda y filtros (se conservan durante la
    sesión). Un clic en cualquier celda de una fila abre el caso, con pestañas
    *Motivo y alertas*, *Seguimiento* (contacto, estado, canalización y cierre)
-   y *Notas*. El motivo de la prioridad se explica en lenguaje cotidiano.
-3. **Estudiantes**: expediente con pestañas *Resultados* (nueve áreas,
+   y *Notas*. El motivo de la prioridad se explica en lenguaje cotidiano. La
+   columna *Condición declarada* indica qué categorías declaró el alumno.
+3. **Condiciones declaradas**: alumnos que declararon neurodivergencia, salud
+   emocional o mental, personalidad o condición física, sensorial o de salud,
+   tengan o no un caso abierto. Muestra un conteo por condición y filtros
+   visibles por condición, solicitud de apoyo, nombre, carrera y grupo (se
+   conservan durante la sesión). El diagnóstico declarado sólo aparece al hacer
+   clic en un alumno; la tabla nunca lo muestra. No modifica la prioridad.
+4. **Estudiantes**: expediente con pestañas *Resultados* (nueve áreas,
    fortalezas, oportunidades y recomendaciones), *Seguimiento* y *Respuestas*
    (las sensibles quedan ocultas hasta activarlas). Si hay varios envíos, aquí
    se elige el vigente. La pestaña *Condiciones y apoyos* resume declaraciones
    de salud sin modificar la prioridad. **Ver reportes del alumno** abre
    Reportes con el mismo alumno.
-4. **Grupos**: promedios y semáforos por carrera y grupo. Los grupos con menos
+5. **Grupos**: promedios y semáforos por carrera y grupo. Los grupos con menos
    alumnos que `minimum_group_size` no muestran agregados ni la lista.
-5. **Reportes**: pestaña *Individual* con vista previa y descarga; pestaña
+6. **Reportes**: pestaña *Individual* con vista previa y descarga; pestaña
    *Por lote* con advertencia de confidencialidad, generación en `exports/` y
    manifiesto `correo → archivo`. El **Reporte de orientación** del alumno usa
    la identidad de la UPY (logo, morado `#5B0A8A`, acento naranja `#FDA20C` y
@@ -121,7 +128,7 @@ ordenadas por frecuencia de uso:
    diagnósticos; el expediente para tutor permite incluir una síntesis sensible
    mediante una casilla apagada por defecto. La fecha usa `report_timezone` y
    las celdas del manifiesto se protegen contra fórmulas de hojas de cálculo.
-6. **Administración**: importación en cuatro pasos (Archivo, Validación,
+7. **Administración**: importación en cuatro pasos (Archivo, Validación,
    Resumen, Confirmación). El modo de prueba está activo por defecto y nunca
    guarda datos; la importación real exige la autorización firmada, una casilla
    y escribir `IMPORTAR`. Aquí también está **Recalcular resultados**, que

@@ -65,6 +65,7 @@ def test_navigation_is_ordered_by_daily_use() -> None:
     assert [page.title for page in ui.NAVIGATION] == [
         "Inicio",
         "Casos",
+        "Condiciones declaradas",
         "Estudiantes",
         "Grupos",
         "Reportes",

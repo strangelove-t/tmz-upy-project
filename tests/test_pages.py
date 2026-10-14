@@ -86,8 +86,8 @@ def run_page(name: str, *, authenticated: bool = True):
     return configured_app(f"pages/{name}").run()
 
 
-def test_all_six_pages_exist() -> None:
-    assert len(PAGES) == 6
+def test_all_seven_pages_exist() -> None:
+    assert len(PAGES) == 7
 
 
 @pytest.mark.parametrize("name", PAGES)
@@ -423,17 +423,69 @@ def test_home_counts_sensitive_notices(sensitive_database) -> None:
     assert metric.value == "2"
 
 
-def test_cases_lists_informational_student_without_diagnosis(
-    sensitive_database,
-) -> None:
+def test_cases_points_to_declared_conditions_page(sensitive_database) -> None:
     app = run_page("2_Casos.py")
 
-    assert any(header.value == "Avisos informativos" for header in app.subheader)
-    notices = next(
-        frame.value for frame in app.dataframe if "Categorías" in frame.value
+    assert not any(header.value == "Avisos informativos" for header in app.subheader)
+    assert not any("Categorías" in frame.value for frame in app.dataframe)
+
+
+def conditions_table(app):
+    return next(frame.value for frame in app.dataframe if "Condiciones" in frame.value)
+
+
+def test_conditions_page_lists_categories_without_diagnosis(
+    sensitive_database,
+) -> None:
+    app = run_page("7_Condiciones.py")
+
+    assert not app.exception
+    assert app.title[0].value == "Condiciones declaradas"
+    counts = {metric.label: metric.value for metric in app.metric}
+    assert counts["Neurodivergencia"] == "1"
+    assert counts["Personalidad"] == "1"
+    assert counts["Salud emocional o mental"] == "0"
+    table = conditions_table(app)
+    assert len(table) == 2
+    assert "Condición sintética" not in table.to_string()
+    assert "TDAH sintético" not in table.to_string()
+    # El detalle sólo aparece al elegir a un alumno.
+    assert not any("TDAH sintético" in item.value for item in app.markdown)
+
+
+def test_conditions_page_filters_by_condition(sensitive_database) -> None:
+    app = run_page("7_Condiciones.py")
+
+    condition = next(box for box in app.multiselect if box.label == "Condición")
+    condition.set_value(["neurodevelopment"]).run()
+
+    table = conditions_table(app)
+    assert len(table) == 1
+    assert table.iloc[0]["Condiciones"] == "Neurodivergencia"
+
+
+def test_conditions_page_shows_detail_for_selected_student(
+    sensitive_database,
+) -> None:
+    app = run_page("7_Condiciones.py")
+    condition = next(box for box in app.multiselect if box.label == "Condición")
+    condition.set_value(["neurodevelopment"]).run()
+
+    app.session_state["conditions_table"] = {
+        "selection": {"rows": [], "columns": [], "cells": [[0, "Alumno"]]}
+    }
+    app.run()
+
+    assert any("TDAH sintético" in item.value for item in app.markdown)
+
+
+def test_home_links_to_declared_conditions(sensitive_database) -> None:
+    app = run_page("1_Resumen.py")
+
+    assert any(
+        "condiciones declaradas" in link.proto.label.casefold()
+        for link in app.get("page_link")
     )
-    assert "Personalidad" in notices["Categorías"].tolist()
-    assert "Condición sintética" not in notices.to_string()
 
 
 def test_student_record_has_structured_sensitive_tab(sensitive_database) -> None:
@@ -490,6 +542,7 @@ def test_student_report_preview_matches_pdf_model(synthetic_database) -> None:
     assert list(preview.columns) == ["Área", "Cifra", "Resultado"]
     assert all(value == "—" or value.isdigit() for value in preview["Cifra"])
     assert not any("Cómo leer el semáforo" in item.value for item in app.markdown)
+
 
 
 def test_reports_follow_the_selected_student(synthetic_database) -> None:

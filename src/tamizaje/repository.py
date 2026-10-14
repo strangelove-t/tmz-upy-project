@@ -132,7 +132,7 @@ def sensitive_notices_frame(
     """Avisos informativos vigentes, separados de alertas y casos."""
     rows = connection.execute(
         """
-        SELECT su.id, st.student_name, st.group_name, c.id
+        SELECT su.id, st.student_name, st.career, st.group_name, c.id
         FROM submissions su
         JOIN students st ON st.id = su.student_id
         LEFT JOIN cases c ON c.submission_id = su.id AND c.is_active = 1
@@ -141,7 +141,7 @@ def sensitive_notices_frame(
         """
     ).fetchall()
     notices = []
-    for submission_id, student_name, group_name, case_id in rows:
+    for submission_id, student_name, career, group_name, case_id in rows:
         summary = build_sensitive_summary(connection, submission_id, config)
         if not summary.has_sensitive_declaration:
             continue
@@ -149,7 +149,9 @@ def sensitive_notices_frame(
             {
                 "submission_id": submission_id,
                 "student_name": student_name,
+                "career": career,
                 "group_name": group_name,
+                "category_codes": tuple(item.code for item in summary.categories),
                 "category_labels": ", ".join(
                     item.label for item in summary.categories
                 ),
@@ -163,7 +165,9 @@ def sensitive_notices_frame(
         columns=(
             "submission_id",
             "student_name",
+            "career",
             "group_name",
+            "category_codes",
             "category_labels",
             "requested_support",
             "requires_review",
