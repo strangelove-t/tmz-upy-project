@@ -67,7 +67,14 @@ Las alertas se evalúan por separado del scoring mediante:
   permitidos para resumir declaraciones `ND`, `SE`, `AP` y `CF`. Esta
   configuración no participa en scoring ni prioridad.
 - `report_content.yaml`: introducción, leyenda del semáforo, interpretaciones y
-  descripción de las nueve áreas que usan la vista previa y los PDF.
+  descripción de las nueve áreas que usan la vista previa y los PDF. Para el
+  reporte del alumno también define `student_introduction` y
+  `student_labels` (Atender, Dar seguimiento, Fortaleza, Sin información).
+
+El contacto de Orientación del reporte del alumno vive en
+`templates/student_report.json` (`"contact"`). Mientras esté vacío, la línea
+no se imprime; al llenarlo aparece en el PDF y en la vista previa sin cambiar
+código.
 
 Los textos de motivo, acción sugerida y recomendaciones son una primera
 redacción operativa y requieren validación de Orientación y Tutorías. Para

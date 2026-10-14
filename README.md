@@ -114,7 +114,10 @@ ordenadas por frecuencia de uso:
    alumnos que `minimum_group_size` no muestran agregados ni la lista.
 5. **Reportes**: pestaña *Individual* con vista previa y descarga; pestaña
    *Por lote* con advertencia de confidencialidad, generación en `exports/` y
-   manifiesto `correo → archivo`. El reporte del alumno nunca incluye
+   manifiesto `correo → archivo`. El **Reporte de orientación** del alumno usa
+   la identidad de la UPY (logo, morado `#5B0A8A`, acento naranja `#FDA20C` y
+   tipografía Lato de `assets/`): resumen por semáforo, cifra entera de 0 a 100
+   por área y recomendaciones sólo para áreas en amarillo o rojo. Nunca incluye
    diagnósticos; el expediente para tutor permite incluir una síntesis sensible
    mediante una casilla apagada por defecto. La fecha usa `report_timezone` y
    las celdas del manifiesto se protegen contra fórmulas de hojas de cálculo.
