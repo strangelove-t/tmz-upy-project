@@ -10,10 +10,12 @@ exportación actual. Sus filas no son una fuente de verdad; permanecen en
 `questionnaire.csv` sólo puede recibir filas revisadas y aprobadas contra una
 fuente institucional.
 
-El catálogo v1.2 vigente contiene 105 columnas aprobadas: 100 preguntas y cinco
+El catálogo v1.2 vigente contiene 106 columnas aprobadas: 100 preguntas y seis
 campos administrativos. No hay filas pendientes de clasificación. Los campos
 `ADM_*` se persisten separadamente en estudiantes y envíos; nunca se guardan
-como respuestas del cuestionario.
+como respuestas del cuestionario. `ADM_LAST_MODIFIED_AT` («Last modified
+time») es opcional: sólo aparece en la exportación en Excel de Forms y se
+descarta al importar.
 
 En el archivo operativo actual, las líneas 2–15 contienen 14 registros de
 prueba. La importación real los excluye automáticamente y comienza en la línea
@@ -22,6 +24,9 @@ prueba. La importación real los excluye automáticamente y comienza en la líne
 `questionnaire_aliases.csv` registra variantes históricas autorizadas mediante
 coincidencia exacta. Cada alias conserva la versión de origen, el código
 canónico, la versión corregida y el motivo. No se permite coincidencia difusa.
+Los alias `1.2-xlsx` cubren la exportación en Excel de Forms convertida a CSV:
+escribe «ID» en lugar de «Id» y recorta los encabezados largos (CN01, DC01) a
+196 caracteres más «...».
 
 `MappingStatus = verified_text` significa que número, `QuestionCode` y texto se
 conciliaron con el PDF canónico v1.2, pero aún faltan uno o más campos operativos

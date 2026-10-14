@@ -80,7 +80,7 @@ def test_administration_keeps_csv_import_control() -> None:
     assert app.title[0].value == "Administración"
     assert len(app.get("file_uploader")) == 1
     assert any(
-        "Catálogo aprobado: 105" in caption.value
+        "Catálogo aprobado: 106" in caption.value
         and "Texto verificado: 0" in caption.value
         and "Pendientes de revisión: 0" in caption.value
         for caption in app.caption

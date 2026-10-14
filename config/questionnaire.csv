@@ -104,3 +104,4 @@ ADM_STARTED_AT,,Start time,administrative,true,true,1.2,approved
 ADM_COMPLETED_AT,,Completion time,administrative,true,true,1.2,approved
 ADM_EMAIL,,Email,administrative,true,true,1.2,approved
 ADM_NAME,,Name,administrative,true,true,1.2,approved
+ADM_LAST_MODIFIED_AT,,Last modified time,administrative,false,true,1.2,approved
