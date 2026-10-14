@@ -21,6 +21,7 @@ data/*.xlsx
 data/imports/
 exports/**/*.pdf
 exports/**/*.csv
+exports/**/*.xlsx
 responses*.csv
 responses*.xlsx
 *.log
