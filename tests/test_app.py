@@ -65,6 +65,7 @@ def test_navigation_is_ordered_by_daily_use() -> None:
     assert [page.title for page in ui.NAVIGATION] == [
         "Inicio",
         "Casos",
+        "Condiciones declaradas",
         "Estudiantes",
         "Grupos",
         "Reportes",
@@ -80,7 +81,7 @@ def test_administration_keeps_csv_import_control() -> None:
     assert app.title[0].value == "Administración"
     assert len(app.get("file_uploader")) == 1
     assert any(
-        "Catálogo aprobado: 105" in caption.value
+        "Catálogo aprobado: 106" in caption.value
         and "Texto verificado: 0" in caption.value
         and "Pendientes de revisión: 0" in caption.value
         for caption in app.caption

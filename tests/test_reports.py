@@ -201,7 +201,7 @@ def test_tutor_report_can_include_whitelisted_summary(imported) -> None:
 def test_report_explains_traffic_lights_and_areas(imported) -> None:
     connection, engine, submission_id = imported
     data = build_report_data(
-        connection, submission_id, engine, load_template("student")
+        connection, submission_id, engine, load_template("tutor")
     )
     assert set(data["traffic_light_legend"]) == {
         "Verde",

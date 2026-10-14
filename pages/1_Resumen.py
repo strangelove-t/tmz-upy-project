@@ -99,11 +99,16 @@ else:
     )
     st.caption(f"{len(open_cases)} casos abiertos en total.")
 
-links = st.columns(2)
+links = st.columns(3)
 links[0].page_link(
     "pages/2_Casos.py", label="Revisar todos los casos", icon=":material/assignment:"
 )
 links[1].page_link(
+    "pages/7_Condiciones.py",
+    label="Ver condiciones declaradas",
+    icon=":material/health_and_safety:",
+)
+links[2].page_link(
     "pages/4_Estudiantes.py", label="Buscar un estudiante", icon=":material/search:"
 )
 

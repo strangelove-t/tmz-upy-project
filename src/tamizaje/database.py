@@ -690,6 +690,9 @@ def import_preview(
                     )
                     for code in column_by_code
                     if code not in SPECIALIZED_CODES
+                    # Metadatos de Forms (p. ej. última modificación): no son
+                    # respuestas del alumno.
+                    and question_by_code[code].question_type != "administrative"
                 ),
             )
             if scoring_config is not None:

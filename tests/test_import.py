@@ -545,3 +545,69 @@ def test_database_rolls_back_complete_import_on_failure(tmp_path) -> None:
     assert connection.execute("SELECT COUNT(*) FROM imports").fetchone()[0] == 0
     assert connection.execute("SELECT COUNT(*) FROM students").fetchone()[0] == 0
     assert connection.execute("SELECT COUNT(*) FROM submissions").fetchone()[0] == 0
+
+
+def test_forms_excel_export_headers_map_to_the_questionnaire() -> None:
+    """La exportación .xlsx de Forms usa «ID», agrega «Last modified time» y
+    recorta los encabezados largos a 196 caracteres más «...»."""
+    from pathlib import Path
+
+    from synthetic_forms import CONFIG_DIR, project_config, synthetic_rows
+
+    from tamizaje.questionnaire import load_questionnaire_aliases
+
+    questionnaire, engine = project_config()
+    aliases = load_questionnaire_aliases(
+        Path(CONFIG_DIR) / "questionnaire_aliases.csv", questionnaire
+    )
+    rows = list(
+        csv.reader(
+            io.StringIO(
+                synthetic_rows(questionnaire, engine, [{}]).decode("utf-8")
+            ),
+            delimiter=";",
+        )
+    )
+    excel_headers = [
+        "ID" if text == "Id" else text[:196] + "..." if len(text) > 199 else text
+        for text in rows[0]
+    ]
+    content = io.StringIO()
+    csv.writer(content).writerows([excel_headers, rows[1]])
+
+    preview = preview_csv(
+        "forms-excel-synthetic.csv",
+        content.getvalue().encode("utf-8"),
+        questionnaire=questionnaire,
+        aliases=aliases,
+    )
+
+    assert preview.mapping is not None
+    assert preview.mapping.unknown_indices == ()
+    assert preview.mapping.is_valid
+
+
+def test_administrative_metadata_is_not_stored_as_a_response(tmp_path) -> None:
+    from synthetic_forms import project_config, synthetic_rows
+
+    questionnaire, engine = project_config()
+    assert any(
+        question.question_code == "ADM_LAST_MODIFIED_AT"
+        and question.question_text == "Last modified time"
+        and question.required is False
+        for question in questionnaire
+    )
+    preview = preview_csv(
+        "synthetic.csv",
+        synthetic_rows(questionnaire, engine, [{}]),
+        questionnaire=questionnaire,
+    )
+    connection = connect_database(tmp_path / "tamizaje.db")
+    initialize_database(connection)
+    import_preview(connection, preview, questionnaire, engine.scoring)
+
+    stored = {
+        row[0]
+        for row in connection.execute("SELECT question_code FROM responses")
+    }
+    assert not any(code.startswith("ADM_") for code in stored)
