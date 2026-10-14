@@ -478,3 +478,15 @@ def test_tutor_sensitive_control_resets_when_student_changes(
         box for box in app.checkbox if "diagnósticos declarados" in box.label
     )
     assert control.value is False
+
+
+def test_student_report_preview_matches_pdf_model(synthetic_database) -> None:
+    app = run_page("5_Reportes.py")
+
+    assert not app.exception
+    labels = {metric.label for metric in app.metric}
+    assert {"Fortaleza", "Dar seguimiento", "Atender"} <= labels
+    preview = app.dataframe[0].value
+    assert list(preview.columns) == ["Área", "Cifra", "Resultado"]
+    assert all(value == "—" or value.isdigit() for value in preview["Cifra"])
+    assert not any("Cómo leer el semáforo" in item.value for item in app.markdown)

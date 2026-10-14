@@ -1,20 +1,20 @@
 {
-  "template_version": "2.0",
+  "template_version": "3.0",
   "report_type": "student",
-  "title": "Reporte de tamizaje y orientación",
+  "title": "Reporte de orientación",
   "fields": [
     "student_name",
     "career",
     "group_name",
     "generated_at",
-    "scoring_version",
-    "introduction",
-    "traffic_light_legend",
+    "student_introduction",
+    "student_labels",
+    "score_scale",
     "areas",
     "strengths",
-    "opportunities",
     "recommendations",
     "resources",
+    "contact",
     "disclaimer"
   ],
   "resources": [
@@ -22,5 +22,6 @@
     "Asesorías académicas con tus docentes y tutor o tutora de grupo.",
     "Información de becas y apoyos institucionales en Servicios Escolares."
   ],
+  "contact": "",
   "disclaimer": "Este reporte proviene de un instrumento de tamizaje y orientación. No constituye un diagnóstico psicológico, clínico ni académico."
 }

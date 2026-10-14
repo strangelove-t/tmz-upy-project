@@ -26,6 +26,7 @@ from tamizaje.sensitive_summary import (
     build_sensitive_summary,
     load_sensitive_config,
 )
+from tamizaje.student_report import render_student_pdf
 
 TEMPLATES_DIR = Path(__file__).parents[2] / "templates"
 CONFIG_DIR = Path(__file__).parents[2] / "config"
@@ -49,6 +50,7 @@ class ReportTemplate:
     areas: tuple[str, ...] | None
     resources: tuple[str, ...]
     disclaimer: str
+    contact: str = ""
 
 
 @dataclass(frozen=True)
@@ -68,6 +70,8 @@ class ReportContent:
     traffic_light_legend: dict[str, str]
     interpretations: dict[str, str]
     areas: dict[str, str]
+    student_introduction: str
+    student_labels: dict[str, str]
 
 
 def load_report_content(
@@ -88,6 +92,11 @@ def load_report_content(
                 for key, value in raw["interpretations"].items()
             },
             areas={str(key): str(value) for key, value in raw["areas"].items()},
+            student_introduction=str(raw["student_introduction"]).strip(),
+            student_labels={
+                str(key): str(value).strip()
+                for key, value in raw["student_labels"].items()
+            },
         )
     except (OSError, KeyError, TypeError, yaml.YAMLError, AttributeError) as error:
         raise ReportError(
@@ -101,6 +110,12 @@ def load_report_content(
         content.interpretations
     ) != expected:
         raise ReportError("La explicación del semáforo está incompleta.")
+    if (
+        set(content.student_labels) != expected
+        or not all(content.student_labels.values())
+        or not content.student_introduction
+    ):
+        raise ReportError("El texto del reporte del alumno está incompleto.")
     return content
 
 
@@ -117,6 +132,7 @@ def load_template(report_type: str, templates_dir: Path = TEMPLATES_DIR):
             areas=tuple(raw["areas"]) if "areas" in raw else None,
             resources=tuple(raw.get("resources", ())),
             disclaimer=str(raw["disclaimer"]),
+            contact=str(raw.get("contact", "")).strip(),
         )
     except (OSError, KeyError, TypeError, json.JSONDecodeError) as error:
         raise ReportError(f"Plantilla {report_type} inválida.") from error
@@ -129,6 +145,17 @@ def report_filename(report_type: str, external_response_id: str) -> str:
     """Nombre determinista que no expone nombre ni correo."""
     digest = hashlib.sha256(external_response_id.encode("utf-8")).hexdigest()[:16]
     return f"{report_type}_{digest}.pdf"
+
+
+def _score_scale(engine: EngineConfig) -> dict[str, int] | None:
+    """Umbrales comunes en enteros; None si las áreas no comparten la escala."""
+    thresholds = {(area.green_min, area.yellow_min) for area in engine.scoring.areas}
+    if len(thresholds) != 1:
+        return None
+    green, yellow = thresholds.pop()
+    if green != int(green) or yellow != int(yellow):
+        return None
+    return {"green_min": int(green), "yellow_min": int(yellow)}
 
 
 def _spreadsheet_safe(value: str) -> str:
@@ -232,6 +259,10 @@ def build_report_data(
         ],
         "resources": list(template.resources),
         "disclaimer": template.disclaimer,
+        "student_introduction": content.student_introduction,
+        "student_labels": content.student_labels,
+        "score_scale": _score_scale(engine),
+        "contact": template.contact,
     }
     unknown = set(template.fields) - available.keys()
     if unknown:
@@ -249,6 +280,8 @@ def build_report_data(
 
 
 def render_pdf(data: dict, template: ReportTemplate) -> bytes:
+    if template.report_type == "student":
+        return render_student_pdf(data, template.title)
     styles = getSampleStyleSheet()
     body = styles["BodyText"]
     story: list = [Paragraph(template.title, styles["Title"])]

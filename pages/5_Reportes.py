@@ -13,6 +13,12 @@ from tamizaje.reports import (
     load_template,
 )
 from tamizaje.repository import students_frame
+from tamizaje.student_report import (
+    build_student_view,
+    contact_line,
+    scale_note,
+    score_text,
+)
 from tamizaje.ui import (
     NO_SUBMISSIONS,
     page_header,
@@ -38,6 +44,35 @@ REPORT_LABELS = {
     "student": "Reporte del alumno",
     "tutor": "Expediente para tutor",
 }
+
+
+def show_student_preview(data: dict) -> None:
+    """Mismo contenido y orden que el PDF del alumno."""
+    view = build_student_view(data, data["student_labels"])
+    st.write(data["student_introduction"])
+    labels = data["student_labels"]
+    columns = st.columns(3)
+    for column, level in zip(columns, ("Verde", "Amarillo", "Rojo"), strict=True):
+        column.metric(labels[level], view.counts[level])
+    st.caption(scale_note(data.get("score_scale")))
+    st.dataframe(
+        [
+            {
+                "Área": item.area_name,
+                "Cifra": score_text(item.score),
+                "Resultado": item.label,
+            }
+            for item in view.areas
+        ],
+        hide_index=True,
+        width="stretch",
+    )
+    if view.focus:
+        st.markdown("**Qué te recomendamos**")
+        for area_name, text, _level in view.focus:
+            st.markdown(f"**{area_name}:** {text}")
+    if contact := contact_line(data):
+        st.caption(f"Orientación y Tutorías: {contact}")
 
 
 def log_download(
@@ -130,21 +165,28 @@ with individual_tab:
                     if field in data
                 )
             )
-            st.write(data.get("introduction", ""))
-            st.markdown("**Cómo leer el semáforo**")
-            for label, explanation in data.get("traffic_light_legend", {}).items():
-                st.markdown(f"**{label}:** {explanation}")
-            for line in data["areas"]:
-                status = line.traffic_light or "Pendiente de revisión"
-                with st.expander(f"{line.area_name} · {status}"):
-                    st.write(line.description)
-                    st.metric(
-                        "Puntaje",
-                        f"{line.score:.1f} de 100" if line.score is not None else "—",
-                    )
-                    st.write(line.interpretation)
-            for area_name, text in data.get("recommendations", []):
-                st.markdown(f"**{area_name}:** {text}")
+            if report_type == "student":
+                show_student_preview(data)
+            else:
+                st.write(data.get("introduction", ""))
+                st.markdown("**Cómo leer el semáforo**")
+                for label, explanation in data.get(
+                    "traffic_light_legend", {}
+                ).items():
+                    st.markdown(f"**{label}:** {explanation}")
+                for line in data["areas"]:
+                    status = line.traffic_light or "Pendiente de revisión"
+                    with st.expander(f"{line.area_name} · {status}"):
+                        st.write(line.description)
+                        st.metric(
+                            "Puntaje",
+                            f"{line.score:.1f} de 100"
+                            if line.score is not None
+                            else "—",
+                        )
+                        st.write(line.interpretation)
+                for area_name, text in data.get("recommendations", []):
+                    st.markdown(f"**{area_name}:** {text}")
             if "sensitive_summary" in data:
                 show_sensitive_summary(data["sensitive_summary"])
             st.caption(template.disclaimer)

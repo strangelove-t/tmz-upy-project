@@ -22,3 +22,13 @@ areas:
   A07: "Impacto funcional del bienestar emocional en las actividades académicas."
   A08: "Impacto funcional de condiciones físicas o de salud en la vida universitaria."
   A09: "Percepción de continuidad, elección de carrera y necesidades de apoyo."
+# Reporte del alumno: lenguaje dirigido a la persona estudiante.
+student_introduction: >-
+  Gracias por responder el cuestionario de bienvenida. Este reporte te muestra
+  en qué áreas tienes recursos favorables y en cuáles podría ayudarte un poco de
+  acompañamiento. Sus resultados orientan apoyos y no constituyen un diagnóstico.
+student_labels:
+  Rojo: "Atender"
+  Amarillo: "Dar seguimiento"
+  Verde: "Fortaleza"
+  Pendiente de revisión: "Sin información"
