@@ -490,3 +490,17 @@ def test_student_report_preview_matches_pdf_model(synthetic_database) -> None:
     assert list(preview.columns) == ["Área", "Cifra", "Resultado"]
     assert all(value == "—" or value.isdigit() for value in preview["Cifra"])
     assert not any("Cómo leer el semáforo" in item.value for item in app.markdown)
+
+
+def test_reports_follow_the_selected_student(synthetic_database) -> None:
+    app = run_page("5_Reportes.py")
+    first_pdf = app.get("download_button")[0].proto.url
+
+    next(box for box in app.selectbox if box.label == "Estudiante").select(4).run()
+
+    student = next(box for box in app.selectbox if box.label == "Estudiante")
+    assert student.value == 4
+    assert any(
+        caption.value in student.format_func(4) for caption in app.caption
+    )
+    assert app.get("download_button")[0].proto.url != first_pdf
