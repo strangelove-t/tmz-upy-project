@@ -1,10 +1,9 @@
 # Handoff técnico — Tamizaje y Orientación UPY
 
 > **Documento de alcance inicial conservado como referencia histórica.** Para
-> el estado implementado y el siguiente bloque aprobado consulta
-> `docs/HANDOFF_2026-10-08.md`. En particular, el cambio de “asesor” a “tutor” y
-> la inclusión opcional de una síntesis sensible están aprobados, pero todavía
-> no implementados.
+> el estado implementado consulta `docs/HANDOFF_2026-10-08.md`. El cambio de
+> “asesor” a “tutor”, la síntesis sensible opcional y la importación desde la
+> línea 2 ya están implementados.
 
 ## 1. Resumen ejecutivo
 

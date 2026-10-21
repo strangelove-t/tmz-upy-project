@@ -33,8 +33,9 @@ Si el navegador no se abre solo, escribe `http://127.0.0.1:8501` en la barra de
 direcciones.
 
 La importación y el recálculo están en **Administración**, fuera del trabajo
-diario. La importación real pide la autorización firmada, una casilla y
-escribir `IMPORTAR`; el modo de prueba nunca guarda datos.
+diario. Al cargar un CSV, la aplicación valida todas las respuestas desde la
+línea 2 sin guardarlas. Para importar pide autorización escrita, una casilla y
+escribir `IMPORTAR`.
 
 La aplicación sólo escucha en `127.0.0.1`: no acepta conexiones desde otras
 computadoras. Si la consola muestra una dirección de red (`Network URL`) en
@@ -104,32 +105,28 @@ hasta confirmar que la restauración es correcta; después elimínala.
 Remove-Item -Recurse "exports\<fecha-hora>"
 ```
 
-## 7. Piloto con registros de prueba
+## 7. Piloto histórico de soporte
 
-Antes de la primera importación real, con exactamente un CSV en `data\`:
+El script siguiente es exclusivo del antiguo archivo con 14 filas de prueba;
+no forma parte del uso normal y no debe ejecutarse con la exportación actual:
 
 ```powershell
 .venv\Scripts\python.exe scripts\run_acceptance.py
 ```
 
-Procesa sólo las líneas 2–15 en una base temporal que se borra al terminar y
-muestra únicamente conteos. Resultado esperado: 14 envíos, 126 resultados de
-área, 28 PDF validados y `Resultado: APROBADO`. Registra el resultado en
-`docs\checklists\ACEPTACION_PILOTO.md`.
-
-**Estado actual:** el CSV canónico termina con `DuplicateImportError` porque
-algunas de las 14 filas de prueba repiten el identificador de respuesta. No
-intentes corregir el CSV ni desactivar la validación de duplicados. El equipo de
-desarrollo debe aislar ese caso sólo dentro del piloto y volver a ejecutar este
-procedimiento.
+Ese script procesa las líneas 2–15 en una base temporal. En el archivo actual
+esas líneas contienen datos reales. Para verificar un CSV actual, usa la
+previsualización de **Administración**, que analiza desde la línea 2 y no
+guarda nada hasta completar la confirmación.
 
 ## 8. Reglas de seguridad
 
 - Usa la aplicación sólo en la computadora institucional con disco cifrado.
 - Conserva el CSV original en una ubicación restringida; no lo copies.
 - No tomes capturas de pantalla con datos de estudiantes.
-- La base local ya contiene 50 envíos reales de las líneas 16–65. No vuelvas a
-  importar el mismo archivo ni uses esos datos para pruebas.
+- La base local puede contener importaciones anteriores. Si un archivo completo
+  o algún identificador ya fue importado, la aplicación rechaza el lote sin
+  guardar cambios parciales.
 - La evidencia de autorización del checklist sigue pendiente de conciliación
   documental. Hasta resolverla, no realices nuevas importaciones ni compartas
   nuevos reportes fuera de la computadora institucional.

@@ -5,6 +5,10 @@ en una copia temporal de la aplicación escuchando sólo en `127.0.0.1`. Las
 capturas se revisaron y se eliminaron al terminar; no se usó el CSV real ni
 `data/tamizaje.db`.
 
+La sección A registra el QA de 2026-10-08. La importación vigente desde
+2026-10-21 ya no tiene modo de prueba: la previsualización analiza todas las
+respuestas desde la línea 2 y no guarda hasta confirmar.
+
 - Fecha: 2026-10-08
 - Rama: `feature/local-access-pilot`
 - Herramienta: Chromium sin interfaz (Playwright en un entorno temporal, no
@@ -34,7 +38,7 @@ capturas se revisaron y se eliminaron al terminar; no se usó el CSV real ni
 - [x] Bloqueo por confidencialidad: grupos con menos de 5 alumnos sin
       promedios, semáforos ni lista.
 - [x] Bloqueo por autorización: importación real deshabilitada hasta marcar la
-      casilla y escribir `IMPORTAR`; el modo de prueba nunca guarda.
+      casilla y escribir `IMPORTAR`. La previsualización nunca guarda.
 - [x] Información sensible cerrada por defecto (interruptor apagado en
       Estudiantes › Respuestas).
 

@@ -283,11 +283,11 @@ def test_groups_show_selection_and_coverage_first(synthetic_database) -> None:
     assert labels[:2] == ["Alumnos evaluados", "Casos abiertos"]
 
 
-def test_administration_separates_safe_preview_and_real_import() -> None:
+def test_administration_has_validation_without_test_mode() -> None:
     app = run_page("6_Administracion.py")
 
     assert app.title[0].value == "Administración"
-    assert any("modo de prueba" in info.value.lower() for info in app.info)
+    assert not any("modo de prueba" in toggle.label.lower() for toggle in app.toggle)
     assert any(expander.label == "Recalcular resultados" for expander in app.expander)
     headers = [header.value for header in app.subheader]
     assert headers[:2] == ["1. Archivo", "2. Validación"]
@@ -324,7 +324,7 @@ def uploaded_csv(tmp_path, monkeypatch):
     return tmp_path / "tamizaje.db"
 
 
-def test_administration_safe_mode_never_persists(uploaded_csv) -> None:
+def test_administration_preview_includes_all_rows(uploaded_csv) -> None:
     app = run_page("6_Administracion.py")
 
     assert [header.value for header in app.subheader] == [
@@ -334,19 +334,23 @@ def test_administration_safe_mode_never_persists(uploaded_csv) -> None:
         "4. Confirmación",
     ]
     analyzed = next(m for m in app.metric if m.label == "Registros analizados")
-    assert analyzed.value == "14"
-    assert not any("Importar" in button.label for button in app.button)
-    assert not uploaded_csv.exists()
+    assert analyzed.value == "16"
+    assert any("Líneas 2–17" in caption.value for caption in app.caption)
+    importer = next(b for b in app.button if b.label.startswith("Importar"))
+    assert importer.disabled
+    if uploaded_csv.exists():
+        connection = connect_database(uploaded_csv)
+        assert connection.execute("SELECT COUNT(*) FROM submissions").fetchone()[0] == 0
+        connection.close()
 
 
 def test_administration_real_import_requires_reinforced_confirmation(
     uploaded_csv,
 ) -> None:
     app = run_page("6_Administracion.py")
-    app.toggle[0].set_value(False).run()
 
     importer = next(b for b in app.button if b.label.startswith("Importar"))
-    assert importer.label == "Importar 2 registros reales"
+    assert importer.label == "Importar 16 registros reales"
     assert importer.disabled
 
     app.checkbox[0].check().run()
@@ -366,7 +370,7 @@ def test_administration_real_import_requires_reinforced_confirmation(
         )
     ]
     connection.close()
-    assert lines == [16, 17]
+    assert lines == list(range(2, 18))
 
 
 def test_cases_open_by_clicking_a_row(synthetic_database) -> None:

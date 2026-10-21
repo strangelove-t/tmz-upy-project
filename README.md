@@ -60,20 +60,21 @@ Streamlit escucha sólo en `http://127.0.0.1:8501`; ninguna otra computadora
 puede conectarse. Inicio, cierre, cambio de contraseña, respaldo, restauración
 y manejo de exportaciones están en `docs/OPERACION_LOCAL.md`.
 
-## Piloto con registros de prueba
+## Piloto histórico
 
-Con exactamente un CSV en `data/`:
+`scripts/run_acceptance.py` se conserva para reproducir el piloto histórico de
+14 filas con un archivo de prueba aislado. No debe ejecutarse con la exportación
+operativa actual: sus filas desde la línea 2 son datos reales. Para validar un
+archivo actual, cárgalo en **Administración**; la previsualización no lo guarda.
+
+Con un archivo de prueba preparado específicamente para ese piloto:
 
 ```bash
 python scripts/run_acceptance.py
 ```
 
-Procesa sólo las líneas 2–15 en una base temporal y muestra únicamente
-conteos. Actualmente el CSV canónico no completa este piloto porque algunas de
-esas 14 filas de prueba repiten el identificador de respuesta; el importador
-las rechaza correctamente como duplicadas. Este pendiente está registrado en
-`docs/checklists/ACEPTACION_PILOTO.md` y debe resolverse sin relajar la
-protección contra duplicados de las importaciones reales.
+El script procesa sólo las líneas 2–15 en una base temporal y muestra
+únicamente conteos. No interviene en la importación normal.
 
 ## Verificación
 
@@ -129,9 +130,9 @@ ordenadas por frecuencia de uso:
    mediante una casilla apagada por defecto. La fecha usa `report_timezone` y
    las celdas del manifiesto se protegen contra fórmulas de hojas de cálculo.
 7. **Administración**: importación en cuatro pasos (Archivo, Validación,
-   Resumen, Confirmación). El modo de prueba está activo por defecto y nunca
-   guarda datos; la importación real exige la autorización firmada, una casilla
-   y escribir `IMPORTAR`. Aquí también está **Recalcular resultados**, que
+   Resumen, Confirmación). La validación analiza todas las respuestas desde la
+   línea 2 sin guardarlas; importar exige autorización escrita, una casilla y
+   escribir `IMPORTAR`. Aquí también está **Recalcular resultados**, que
    aplica una versión nueva de scoring o de reglas a los envíos guardados sin
    reimportar. Un caso sin alertas vigentes conserva su historial, pero sale de
    la priorización.
@@ -147,16 +148,14 @@ ordenadas por frecuencia de uso:
 
 ### Archivo de respuestas disponible
 
-En el archivo actualmente alojado en `data/`:
+En la exportación operativa actual:
 
 - La línea 1 contiene los encabezados.
-- Las líneas 2 a 15 corresponden a 14 registros de prueba.
-- Desde la línea 16 en adelante existen datos reales, sensibles y
-  confidenciales.
-- La base local actual contiene 50 envíos procedentes de las líneas 16–65. No
-  deben inspeccionarse ni utilizarse para desarrollo, pruebas o capturas.
-- Sólo el encabezado y las líneas 2 a 15 pueden utilizarse durante el desarrollo
-  y las pruebas locales.
+- Todas las respuestas desde la línea 2 son datos reales, sensibles y
+  confidenciales; Administración las incluye desde esa primera línea.
+- La base local puede contener importaciones operativas. No debe utilizarse
+  para desarrollo, pruebas o capturas.
+- Las pruebas y demostraciones deben usar únicamente archivos sintéticos.
 - Los datos reales no deben copiarse a `tests/fixtures/`, logs, documentación,
   capturas, mensajes, commits ni salidas de depuración.
 - Si se necesita un fixture versionado, debe generarse de forma sintética o

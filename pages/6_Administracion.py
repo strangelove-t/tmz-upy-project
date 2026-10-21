@@ -27,7 +27,6 @@ from tamizaje.repository import last_import
 from tamizaje.scoring_config import ScoringConfigError
 from tamizaje.ui import DISCLAIMER, page_header, require_authentication
 
-TEST_DATA_ROWS = 14
 REAL_IMPORT_PHRASE = "IMPORTAR"
 
 require_authentication(show_logout=False)
@@ -100,21 +99,11 @@ st.header("Importar respuestas")
 
 st.subheader("1. Archivo")
 uploaded_file = st.file_uploader("Exportación CSV de Microsoft Forms", type=["csv"])
-test_mode = st.toggle(
-    "Modo de prueba: analizar sólo los 14 registros de prueba (líneas 2–15)",
-    value=True,
+st.info(
+    "Se analizarán todas las respuestas desde la línea 2. La validación no "
+    "guarda datos; para importarlos se requiere autorización escrita y "
+    "confirmación expresa."
 )
-if test_mode:
-    st.info(
-        "Modo de prueba activo: se analizan sólo las líneas 2–15 y nada se "
-        "guarda en la base de datos."
-    )
-else:
-    st.error(
-        "Procesamiento real: se analizarán las líneas 16 en adelante, que "
-        "contienen información sensible y confidencial. Hazlo sólo con la "
-        "autorización firmada en el checklist de aceptación."
-    )
 
 st.subheader("2. Validación")
 if uploaded_file is None:
@@ -125,8 +114,6 @@ else:
         preview = preview_csv(
             uploaded_file.name,
             uploaded_file.getvalue(),
-            max_rows=TEST_DATA_ROWS if test_mode else None,
-            skip_rows=0 if test_mode else TEST_DATA_ROWS,
             questionnaire=questionnaire,
             pending_headers=pending_headers,
             aliases=aliases,
@@ -181,12 +168,7 @@ if preview is not None:
     )
 
     st.subheader("4. Confirmación")
-    if test_mode:
-        st.info(
-            "Modo de prueba: la previsualización termina aquí. Para importar "
-            "datos reales desactiva el modo de prueba."
-        )
-    elif not ready:
+    if not ready:
         st.warning("Corrige los problemas de validación antes de importar.")
     else:
         connection = connect_database(ui.DATABASE_PATH)

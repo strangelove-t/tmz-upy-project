@@ -1,7 +1,8 @@
-# Checklist de aceptación del piloto
+# Checklist de aceptación de la importación
 
-> **Importación real bloqueada.** No procesar las líneas 16 en adelante
-> mientras la última casilla de este documento esté sin marcar.
+> **Formato vigente:** línea 1 = encabezados; todas las respuestas desde la
+> línea 2 son datos reales. El piloto de 14 filas descrito abajo es histórico
+> y no debe ejecutarse con la exportación operativa actual.
 
 Este documento no debe contener nombres, correos, respuestas ni diagnósticos.
 Registra sólo conteos, fechas, versiones y resultados.
@@ -24,7 +25,10 @@ Marcados por el equipo de desarrollo con evidencia de comandos.
 - [x] Ninguna página consulta la base antes de autenticar.
 - [x] `.streamlit/secrets.toml` está ignorado y no hay contraseña en Git.
 
-### Piloto con las líneas 2–15
+### Piloto histórico con las líneas 2–15
+
+Las casillas de este apartado pertenecen al archivo anterior y no se completan
+para la exportación operativa actual.
 
 - [ ] Se procesaron exactamente 14 registros (líneas 2–15).
 - [ ] Mapeo de encabezados válido (105 columnas).
@@ -69,22 +73,27 @@ Marcados por el equipo de desarrollo con evidencia de comandos.
   UX/UI) · `ruff check .` sin errores · `compileall` sin
   errores · `git diff --check` sin errores.
 
-### Revisión vigente (2026-10-13, `main`)
+### Evidencia histórica (2026-10-13, `main`)
 
 - Commit integrado: `62cdc0a`. Suite automatizada: **212 pruebas aprobadas**;
   Ruff, `compileall` y `git diff --check` sin errores.
-- El CSV canónico sí está disponible localmente, pero
-  `scripts/run_acceptance.py` termina con `DuplicateImportError`: algunas filas
-  de prueba 2–15 repiten el identificador de respuesta. Por ello las casillas
-  del piloto canónico continúan sin marcar. La corrección no debe debilitar la
-  protección de duplicados de las importaciones reales.
-- La base local contiene 50 envíos reales con líneas fuente 16–65, cero filas
-  anteriores a la 16, cero envíos huérfanos y cero violaciones de llaves
-  foráneas. Estos conteos no autorizan nuevas importaciones ni sustituyen la
-  firma institucional.
+- El antiguo CSV tenía filas de prueba 2–15 con identificadores repetidos. El
+  piloto canónico no se completó. Esta incidencia no corresponde al archivo
+  operativo actual.
+- En esa fecha, la base contenía 50 envíos reales con líneas fuente 16–65.
+  Este conteo no describe la base vigente.
 - `main` incorpora el diseño y la implementación de condiciones sensibles y
   reportes para tutor. La aceptación presencial de esos flujos continúa
   pendiente en `docs/checklists/QA_UX_UI.md`.
+
+### Validación del archivo operativo actual (desde 2026-10-21)
+
+- [x] Administración previsualiza desde la línea 2 y no guarda antes de
+      confirmar (pruebas automatizadas con CSV sintético).
+- [x] Importar exige casilla de autorización escrita y la frase `IMPORTAR`
+      (pruebas automatizadas con CSV sintético).
+- [ ] Registrar fecha, versión y conteos de la primera importación aprobada en
+      la computadora institucional, sin incluir datos personales.
 
 ## B. Revisión institucional (Orientación y Tutorías)
 
@@ -101,11 +110,11 @@ Sólo la maestra marca estas casillas después de revisar cada contenido.
 
 ## C. Autorización
 
-- [ ] La maestra autoriza por escrito procesar las líneas 16 en adelante.
+- [ ] La maestra autoriza por escrito procesar las respuestas del archivo
+      operativo desde la línea 2.
 
-**Conciliación requerida:** existen datos reales ya procesados en la base local,
-pero esta casilla permanece sin evidencia firmada en el repositorio. Antes de
-nuevas importaciones o entregas externas, adjuntar o registrar la autorización
-por el canal institucional correspondiente.
+**Conciliación requerida:** esta casilla permanece sin evidencia firmada en el
+repositorio. Registrar la autorización por el canal institucional antes de
+nuevas importaciones o entregas externas.
 
 Nombre y firma: ______________________  Fecha: ____________

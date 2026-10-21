@@ -17,9 +17,9 @@ como respuestas del cuestionario. `ADM_LAST_MODIFIED_AT` («Last modified
 time») es opcional: sólo aparece en la exportación en Excel de Forms y se
 descarta al importar.
 
-En el archivo operativo actual, las líneas 2–15 contienen 14 registros de
-prueba. La importación real los excluye automáticamente y comienza en la línea
-16. El modo seguro analiza únicamente esas 14 pruebas y no permite guardarlas.
+En la exportación operativa actual, la línea 1 contiene encabezados y todas las
+respuestas desde la línea 2 son reales. Administración analiza el archivo
+completo antes de solicitar autorización escrita y confirmación para guardarlo.
 
 `questionnaire_aliases.csv` registra variantes históricas autorizadas mediante
 coincidencia exacta. Cada alias conserva la versión de origen, el código
