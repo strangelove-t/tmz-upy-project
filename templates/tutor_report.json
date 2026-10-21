@@ -1,5 +1,5 @@
 {
-  "template_version": "2.0",
+  "template_version": "2.1",
   "report_type": "tutor",
   "title": "Expediente académico para tutoría",
   "fields": [
@@ -13,6 +13,6 @@
     "recommendations",
     "disclaimer"
   ],
-  "areas": ["A01", "A02", "A03", "A04"],
+  "areas": ["A01", "A02", "A03", "A04", "A05", "A06", "A07", "A08", "A09"],
   "disclaimer": "Documento confidencial de uso exclusivo para Orientación y Tutorías. La sección de condiciones declaradas sólo aparece cuando se autoriza expresamente."
 }

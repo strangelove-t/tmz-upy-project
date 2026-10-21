@@ -5,6 +5,12 @@ import streamlit as st
 
 from tamizaje import ui
 from tamizaje.database import connect_database, record_export
+from tamizaje.group_report import (
+    GroupReportError,
+    build_group_report,
+    group_report_filename,
+    render_group_pdf,
+)
 from tamizaje.reports import (
     ReportError,
     build_report_data,
@@ -93,7 +99,7 @@ def log_download(
     log_connection.close()
 
 
-individual_tab, batch_tab = st.tabs(["Individual", "Por lote"])
+individual_tab, group_tab, batch_tab = st.tabs(["Individual", "Grupal", "Por lote"])
 
 with individual_tab:
     labels = {
@@ -126,8 +132,7 @@ with individual_tab:
             st.session_state["include_sensitive_report"] = False
             st.session_state["sensitive_report_context"] = report_context
         include_sensitive = st.checkbox(
-            "Incluir condiciones de salud, neurodivergencias y diagnósticos "
-            "declarados",
+            "Incluir condiciones de salud, neurodivergencias y diagnósticos declarados",
             value=False,
             key="include_sensitive_report",
         )
@@ -170,9 +175,7 @@ with individual_tab:
             else:
                 st.write(data.get("introduction", ""))
                 st.markdown("**Cómo leer el semáforo**")
-                for label, explanation in data.get(
-                    "traffic_light_legend", {}
-                ).items():
+                for label, explanation in data.get("traffic_light_legend", {}).items():
                     st.markdown(f"**{label}:** {explanation}")
                 for line in data["areas"]:
                     status = line.traffic_light or "Pendiente de revisión"
@@ -198,6 +201,77 @@ with individual_tab:
             on_click=log_download,
             args=(submission_id, report_type, filename, include_sensitive),
             type="primary",
+            icon=":material/download:",
+        )
+
+with group_tab:
+    st.write(
+        "Resumen agregado para el tutor del grupo. No contiene nombres, correos "
+        "ni condiciones de salud. Entrégalo sólo por canales institucionales."
+    )
+    selectors = st.columns(2)
+    career = selectors[0].selectbox(
+        "Carrera del reporte", sorted(students["career"].unique())
+    )
+    group_name = selectors[1].selectbox(
+        "Grupo del reporte",
+        sorted(students.loc[students["career"] == career, "group_name"].unique()),
+    )
+    try:
+        group_report = build_group_report(connection, engine, career, group_name)
+    except GroupReportError as error:
+        st.warning(str(error))
+    else:
+        st.subheader("Resumen para el tutor del grupo")
+        metrics = st.columns(3)
+        metrics[0].metric("Alumnos evaluados", group_report.student_count)
+        total = group_report.complete_results + group_report.pending_results
+        metrics[1].metric(
+            "Resultados completos",
+            f"{group_report.complete_results}/{total}",
+        )
+        metrics[2].metric(
+            "Casos abiertos", sum(group_report.open_cases_by_level.values())
+        )
+        st.dataframe(
+            [
+                {
+                    "Área": area.name,
+                    "Promedio": f"{area.average:.1f}"
+                    if area.average is not None
+                    else "—",
+                    "Verde": area.distribution["Verde"],
+                    "Amarillo": area.distribution["Amarillo"],
+                    "Rojo": area.distribution["Rojo"],
+                    "Pendiente": area.distribution["Pendiente"],
+                }
+                for area in group_report.areas
+            ],
+            hide_index=True,
+            width="stretch",
+        )
+        st.caption(
+            "El promedio usa sólo resultados completos (0–100). Resume tendencias "
+            "del grupo; no describe a cada estudiante ni es un diagnóstico."
+        )
+        st.markdown("**Casos abiertos por nivel**")
+        st.write(
+            " · ".join(
+                f"{level}: {count}"
+                for level, count in group_report.open_cases_by_level.items()
+            )
+        )
+        st.markdown("**Áreas para iniciar la tutoría**")
+        if group_report.focus_areas:
+            for area in group_report.focus_areas:
+                st.write(f"{area.name}: {area.attention_count} en amarillo o rojo")
+        else:
+            st.write("No hay áreas con semáforo amarillo o rojo.")
+        st.download_button(
+            "Descargar resumen grupal (PDF)",
+            render_group_pdf(group_report),
+            file_name=group_report_filename(group_report),
+            mime="application/pdf",
             icon=":material/download:",
         )
 

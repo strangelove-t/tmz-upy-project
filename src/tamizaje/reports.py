@@ -346,7 +346,7 @@ def render_pdf(data: dict, template: ReportTemplate) -> bytes:
             if line.traffic_light in LIGHT_COLORS:
                 color = LIGHT_COLORS[line.traffic_light]
                 style.append(("TEXTCOLOR", (2, index), (2, index), color))
-        table = Table(rows, colWidths=[9 * cm, 3 * cm, 4 * cm])
+        table = Table(rows, colWidths=[9 * cm, 3 * cm, 4 * cm], repeatRows=1)
         table.setStyle(TableStyle(style))
         story += [table, Spacer(1, 0.4 * cm)]
 

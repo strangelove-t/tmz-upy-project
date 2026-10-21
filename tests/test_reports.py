@@ -1,4 +1,6 @@
 import csv
+import shutil
+import subprocess
 from dataclasses import replace
 from datetime import UTC, datetime
 
@@ -74,7 +76,7 @@ def test_student_report_excludes_internal_information(imported) -> None:
         assert forbidden not in text
 
 
-def test_tutor_report_only_contains_whitelisted_academic_areas(imported) -> None:
+def test_tutor_report_covers_all_areas_without_diagnoses_by_default(imported) -> None:
     connection, engine, submission_id = imported
     data = build_report_data(
         connection, submission_id, engine, load_template("tutor")
@@ -82,10 +84,12 @@ def test_tutor_report_only_contains_whitelisted_academic_areas(imported) -> None
     text = flatten(data)
 
     assert set(data) == set(load_template("tutor").fields)
-    assert [line.area_code for line in data["areas"]] == ["A01", "A02", "A03", "A04"]
+    assert [line.area_code for line in data["areas"]] == [
+        f"A{number:02d}" for number in range(1, 10)
+    ]
     staff_texts = {r.staff_recommendation for r in engine.recommendations}
     assert all(text in staff_texts for _, text in data["recommendations"])
-    for forbidden in (EMAIL, "Texto abierto", "Bienestar emocional", "Sí"):
+    for forbidden in (EMAIL, "Texto abierto sintético", "sensitive_summary"):
         assert forbidden not in text
 
 
@@ -114,6 +118,18 @@ def test_generated_pdf_is_valid(imported) -> None:
         )
         assert filename.startswith(report_type)
         assert content.startswith(b"%PDF") and content.rstrip().endswith(b"%%EOF")
+
+
+def test_tutor_pdf_repeats_area_header_when_it_spans_pages(imported) -> None:
+    if not shutil.which("pdftotext"):
+        pytest.skip("pdftotext no está disponible")
+    connection, engine, submission_id = imported
+    _, content = generate_report(connection, submission_id, engine, "tutor")
+
+    text = subprocess.run(
+        ["pdftotext", "-", "-"], input=content, capture_output=True, check=True
+    ).stdout.decode()
+    assert text.count("Área e interpretación") >= 2
 
 
 def test_export_batch_writes_manifest_and_audit(imported, tmp_path) -> None:

@@ -121,13 +121,19 @@ ordenadas por frecuencia de uso:
 5. **Grupos**: promedios y semáforos por carrera y grupo. Los grupos con menos
    alumnos que `minimum_group_size` no muestran agregados ni la lista.
 6. **Reportes**: pestaña *Individual* con vista previa y descarga; pestaña
-   *Por lote* con advertencia de confidencialidad, generación en `exports/` y
-   manifiesto `correo → archivo`. El **Reporte de orientación** del alumno usa
+   *Grupal* con resumen PDF para el tutor del grupo (nueve áreas, cobertura,
+   semáforos y casos abiertos, sin datos individuales) y bloqueo bajo
+   `minimum_group_size`; pestaña *Por lote* con advertencia de
+   confidencialidad, generación en `exports/` y manifiesto `correo → archivo`.
+   El **Reporte de orientación** del alumno usa
    la identidad de la UPY (logo, morado `#5B0A8A`, acento naranja `#FDA20C` y
    tipografía Lato de `assets/`): resumen por semáforo, cifra entera de 0 a 100
    por área y recomendaciones sólo para áreas en amarillo o rojo. Nunca incluye
-   diagnósticos; el expediente para tutor permite incluir una síntesis sensible
-   mediante una casilla apagada por defecto. La fecha usa `report_timezone` y
+   diagnósticos; el expediente para tutor muestra las nueve áreas y permite
+   incluir una síntesis sensible mediante una casilla apagada por defecto. El
+   PDF grupal se descarga en memoria para compartirlo por el canal
+   institucional autorizado; la aplicación no envía correo. La fecha usa
+   `report_timezone` y
    las celdas del manifiesto se protegen contra fórmulas de hojas de cálculo.
 7. **Administración**: importación en cuatro pasos (Archivo, Validación,
    Resumen, Confirmación). La validación analiza todas las respuestas desde la

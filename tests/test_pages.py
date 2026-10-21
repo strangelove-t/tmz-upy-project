@@ -91,9 +91,7 @@ def test_all_seven_pages_exist() -> None:
 
 
 @pytest.mark.parametrize("name", PAGES)
-def test_pages_require_authentication_before_reading(
-    name, synthetic_database
-) -> None:
+def test_pages_require_authentication_before_reading(name, synthetic_database) -> None:
     app = run_page(name, authenticated=False)
 
     assert not app.exception
@@ -271,9 +269,39 @@ def test_student_record_opens_reports_for_same_student(synthetic_database) -> No
 def test_reports_separates_individual_and_batch_flows(synthetic_database) -> None:
     app = run_page("5_Reportes.py")
 
-    assert {tab.label for tab in app.tabs} == {"Individual", "Por lote"}
+    assert {tab.label for tab in app.tabs} == {"Individual", "Grupal", "Por lote"}
     assert any("confidencial" in warning.value.lower() for warning in app.warning)
     assert any("Vista previa" in header.value for header in app.subheader)
+
+
+def test_group_report_can_be_downloaded_for_allowed_group(synthetic_database) -> None:
+    app = run_page("5_Reportes.py")
+
+    assert not app.exception
+    assert any(
+        header.value == "Resumen para el tutor del grupo" for header in app.subheader
+    )
+    assert any(
+        button.label == "Descargar resumen grupal (PDF)"
+        for button in app.get("download_button")
+    )
+    assert any(
+        metric.label == "Alumnos evaluados" and metric.value == "5"
+        for metric in app.metric
+    )
+
+
+def test_small_group_report_has_no_download(synthetic_database) -> None:
+    app = run_page("5_Reportes.py")
+    group = next(box for box in app.selectbox if box.label == "Grupo del reporte")
+    group.set_value("G-02").run()
+
+    assert not app.exception
+    assert any("menos de 5 alumnos" in warning.value for warning in app.warning)
+    assert not any(
+        button.label == "Descargar resumen grupal (PDF)"
+        for button in app.get("download_button")
+    )
 
 
 def test_groups_show_selection_and_coverage_first(synthetic_database) -> None:
@@ -548,7 +576,6 @@ def test_student_report_preview_matches_pdf_model(synthetic_database) -> None:
     assert not any("Cómo leer el semáforo" in item.value for item in app.markdown)
 
 
-
 def test_reports_follow_the_selected_student(synthetic_database) -> None:
     app = run_page("5_Reportes.py")
     first_pdf = app.get("download_button")[0].proto.url
@@ -557,7 +584,5 @@ def test_reports_follow_the_selected_student(synthetic_database) -> None:
 
     student = next(box for box in app.selectbox if box.label == "Estudiante")
     assert student.value == 4
-    assert any(
-        caption.value in student.format_func(4) for caption in app.caption
-    )
+    assert any(caption.value in student.format_func(4) for caption in app.caption)
     assert app.get("download_button")[0].proto.url != first_pdf

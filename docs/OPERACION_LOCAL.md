@@ -92,7 +92,16 @@ hasta confirmar que la restauración es correcta; después elimínala.
 - El **Reporte del alumno** nunca incluye diagnósticos ni condiciones de salud.
 - El **Expediente para tutor** excluye esa información por defecto. La casilla
   para incluirla debe activarse conscientemente para cada alumno o lote y
-  muestra una advertencia antes de generar el PDF.
+  muestra una advertencia antes de generar el PDF. Incluye las nueve áreas con
+  puntaje, semáforo, interpretación y sugerencia para tutoría.
+- El **Resumen grupal** está en *Reportes › Grupal*: elige carrera y grupo y
+  descarga el PDF para el tutor del grupo. Muestra sólo datos agregados de las
+  respuestas vigentes: tamaño, cobertura, nueve áreas, semáforos, casos abiertos
+  y áreas de atención. No incluye nombres, correos ni diagnósticos. No se
+  habilita si el grupo tiene menos de `minimum_group_size` alumnos.
+- El resumen grupal se genera en memoria, no se guarda automáticamente en
+  `exports/` ni se envía por correo. Entrégalo por un canal institucional
+  autorizado y conserva el archivo sólo el tiempo necesario.
 - En lotes sensibles se requiere una segunda confirmación. La auditoría registra
   si el archivo incluyó la síntesis, pero no copia diagnósticos al registro.
 - La generación por lote escribe en `exports\<fecha-hora>\` los PDFs y
