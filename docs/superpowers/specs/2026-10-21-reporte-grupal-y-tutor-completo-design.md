@@ -1,7 +1,9 @@
 # Reporte grupal y expediente completo para tutor
 
 **Fecha:** 2026-10-21  
-**Estado:** aprobado en conversación
+**Estado:** sustituido parcialmente por
+`2026-10-21-reporte-tutor-legible-y-priorizado-design.md`; en particular, el
+reporte grupal ahora incluye una lista mínima de alumnos con atención abierta.
 
 ## Destinatario y alcance
 

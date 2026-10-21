@@ -4,7 +4,9 @@ import csv
 import hashlib
 import io
 import json
+import re
 import sqlite3
+import unicodedata
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
@@ -68,6 +70,7 @@ class AreaLine:
 class ReportContent:
     introduction: str
     traffic_light_legend: dict[str, str]
+    group_level_explanations: dict[str, str]
     interpretations: dict[str, str]
     areas: dict[str, str]
     student_introduction: str
@@ -87,9 +90,12 @@ def load_report_content(
                 str(key): str(value)
                 for key, value in raw["traffic_light_legend"].items()
             },
-            interpretations={
+            group_level_explanations={
                 str(key): str(value)
-                for key, value in raw["interpretations"].items()
+                for key, value in raw["group_level_explanations"].items()
+            },
+            interpretations={
+                str(key): str(value) for key, value in raw["interpretations"].items()
             },
             areas={str(key): str(value) for key, value in raw["areas"].items()},
             student_introduction=str(raw["student_introduction"]).strip(),
@@ -106,10 +112,15 @@ def load_report_content(
     if set(content.areas) != area_codes:
         raise ReportError("Las descripciones no cubren exactamente las áreas activas.")
     expected = {"Verde", "Amarillo", "Rojo", "Pendiente de revisión"}
-    if set(content.traffic_light_legend) != expected or set(
-        content.interpretations
-    ) != expected:
+    if (
+        set(content.traffic_light_legend) != expected
+        or set(content.interpretations) != expected
+    ):
         raise ReportError("La explicación del semáforo está incompleta.")
+    if set(content.group_level_explanations) != set(engine.alerts.levels) or not all(
+        content.group_level_explanations.values()
+    ):
+        raise ReportError("La explicación de niveles grupales está incompleta.")
     if (
         set(content.student_labels) != expected
         or not all(content.student_labels.values())
@@ -141,10 +152,19 @@ def load_template(report_type: str, templates_dir: Path = TEMPLATES_DIR):
     return template
 
 
-def report_filename(report_type: str, external_response_id: str) -> str:
-    """Nombre determinista que no expone nombre ni correo."""
+def safe_filename_fragment(value: str, max_length: int = 160) -> str:
+    """Fragmento legible sin separadores ni caracteres peligrosos para Windows."""
+    plain = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode()
+    safe = re.sub(r"[^A-Za-z0-9_-]+", "_", plain)
+    return safe[:max_length].strip("._-") or "sin_nombre"
+
+
+def report_filename(
+    report_type: str, external_response_id: str, student_name: str
+) -> str:
+    """Nombre legible y determinista, con sufijo para evitar colisiones."""
     digest = hashlib.sha256(external_response_id.encode("utf-8")).hexdigest()[:16]
-    return f"{report_type}_{digest}.pdf"
+    return f"{report_type}_{safe_filename_fragment(student_name)}_{digest}.pdf"
 
 
 def _score_scale(engine: EngineConfig) -> dict[str, int] | None:
@@ -366,9 +386,7 @@ def render_pdf(data: dict, template: ReportTemplate) -> bytes:
         )
         story.append(Paragraph(heading, styles["Heading2"]))
         for area_name, text in data["recommendations"]:
-            story.append(
-                Paragraph(f"<b>{escape(area_name)}:</b> {escape(text)}", body)
-            )
+            story.append(Paragraph(f"<b>{escape(area_name)}:</b> {escape(text)}", body))
 
     if data.get("resources"):
         story.append(Paragraph("Recursos institucionales", styles["Heading2"]))
@@ -426,7 +444,10 @@ def generate_report(
         template,
         include_sensitive=include_sensitive,
     )
-    return report_filename(report_type, external_id[0]), render_pdf(data, template)
+    return (
+        report_filename(report_type, external_id[0], data["student_name"]),
+        render_pdf(data, template),
+    )
 
 
 def export_batch(

@@ -289,6 +289,15 @@ def test_group_report_can_be_downloaded_for_allowed_group(synthetic_database) ->
         metric.label == "Alumnos evaluados" and metric.value == "5"
         for metric in app.metric
     )
+    assert not any(metric.label == "Resultados completos" for metric in app.metric)
+    assert any("Cómo leer" in header.value for header in app.subheader)
+    assert any(
+        "Alumnos que requieren acompañamiento" in header.value
+        for header in app.subheader
+    )
+    assert any(
+        "Estudiante Sintético 002" in str(table.value) for table in app.dataframe
+    )
 
 
 def test_small_group_report_has_no_download(synthetic_database) -> None:

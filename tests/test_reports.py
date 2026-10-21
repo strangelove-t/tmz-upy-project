@@ -70,7 +70,7 @@ def test_student_report_excludes_internal_information(imported) -> None:
     assert len(data["areas"]) == 9
     assert data["recommendations"]
     assert "No constituye un diagnóstico" in data["disclaimer"]
-    for alert_reason, in connection.execute("SELECT alert_reason FROM alerts"):
+    for (alert_reason,) in connection.execute("SELECT alert_reason FROM alerts"):
         assert alert_reason not in text
     for forbidden in ("Atención prioritaria", "AL-", "Texto abierto", EMAIL):
         assert forbidden not in text
@@ -78,9 +78,7 @@ def test_student_report_excludes_internal_information(imported) -> None:
 
 def test_tutor_report_covers_all_areas_without_diagnoses_by_default(imported) -> None:
     connection, engine, submission_id = imported
-    data = build_report_data(
-        connection, submission_id, engine, load_template("tutor")
-    )
+    data = build_report_data(connection, submission_id, engine, load_template("tutor"))
     text = flatten(data)
 
     assert set(data) == set(load_template("tutor").fields)
@@ -101,12 +99,21 @@ def test_template_cannot_request_unauthorized_fields(imported) -> None:
         build_report_data(connection, submission_id, engine, template)
 
 
-def test_report_filename_is_deterministic_and_anonymous() -> None:
-    first = report_filename("student", "synthetic-001")
+def test_report_filename_names_student_safely_and_prevents_collisions() -> None:
+    first = report_filename("student", "synthetic-001", "Ana María / López")
 
-    assert first == report_filename("student", "synthetic-001")
-    assert first != report_filename("student", "synthetic-002")
-    assert "synthetic" not in first and first.endswith(".pdf")
+    assert first == report_filename("student", "synthetic-001", "Ana María / López")
+    assert first != report_filename("student", "synthetic-002", "Ana María / López")
+    assert "Ana_Maria_Lopez" in first
+    assert "/" not in first and first.endswith(".pdf")
+
+
+def test_report_filename_keeps_long_full_name() -> None:
+    name = "Ana " + " ".join(["López"] * 24)
+    filename = report_filename("tutor", "synthetic-long", name)
+
+    assert "Ana_" + "_".join(["Lopez"] * 24) in filename
+    assert len(filename) <= 255
 
 
 def test_generated_pdf_is_valid(imported) -> None:
@@ -117,6 +124,7 @@ def test_generated_pdf_is_valid(imported) -> None:
             connection, submission_id, engine, report_type
         )
         assert filename.startswith(report_type)
+        assert "Estudiante_Sintetico_001" in filename
         assert content.startswith(b"%PDF") and content.rstrip().endswith(b"%%EOF")
 
 
@@ -195,9 +203,7 @@ def test_student_report_rejects_sensitive_option(imported) -> None:
 
 def test_tutor_report_excludes_sensitive_summary_by_default(imported) -> None:
     connection, engine, submission_id = imported
-    data = build_report_data(
-        connection, submission_id, engine, load_template("tutor")
-    )
+    data = build_report_data(connection, submission_id, engine, load_template("tutor"))
     assert "sensitive_summary" not in data
 
 
@@ -216,9 +222,7 @@ def test_tutor_report_can_include_whitelisted_summary(imported) -> None:
 
 def test_report_explains_traffic_lights_and_areas(imported) -> None:
     connection, engine, submission_id = imported
-    data = build_report_data(
-        connection, submission_id, engine, load_template("tutor")
-    )
+    data = build_report_data(connection, submission_id, engine, load_template("tutor"))
     assert set(data["traffic_light_legend"]) == {
         "Verde",
         "Amarillo",

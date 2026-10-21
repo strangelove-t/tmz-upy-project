@@ -7,6 +7,10 @@ traffic_light_legend:
   Amarillo: "Conviene dar seguimiento: puede beneficiarse de orientación o apoyo preventivo."
   Rojo: "Requiere atención: conviene revisar el área y acordar acciones de apoyo."
   Pendiente de revisión: "No hubo información suficiente para interpretar el área."
+group_level_explanations:
+  Atención prioritaria: "Conviene contactar pronto al alumno para conversar y acordar el apoyo adecuado."
+  Revisión manual: "Orientación y Tutorías debe revisar la situación antes de decidir el siguiente paso."
+  Seguimiento preventivo: "Conviene conversar con el alumno y dar seguimiento para evitar que la dificultad aumente."
 interpretations:
   Verde: "El resultado muestra recursos favorables en esta área."
   Amarillo: "El resultado sugiere revisar esta área y ofrecer seguimiento preventivo."

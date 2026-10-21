@@ -206,8 +206,12 @@ with individual_tab:
 
 with group_tab:
     st.write(
-        "Resumen agregado para el tutor del grupo. No contiene nombres, correos "
-        "ni condiciones de salud. Entrégalo sólo por canales institucionales."
+        "Informe para el tutor del grupo con tendencias generales y alumnos que "
+        "requieren acompañamiento. No incluye correos, motivos ni diagnósticos."
+    )
+    st.warning(
+        "El PDF contiene nombres de alumnos. Entrégalo sólo al tutor del grupo "
+        "por un canal institucional autorizado."
     )
     selectors = st.columns(2)
     career = selectors[0].selectbox(
@@ -223,50 +227,75 @@ with group_tab:
         st.warning(str(error))
     else:
         st.subheader("Resumen para el tutor del grupo")
-        metrics = st.columns(3)
+        metrics = st.columns(2)
         metrics[0].metric("Alumnos evaluados", group_report.student_count)
-        total = group_report.complete_results + group_report.pending_results
-        metrics[1].metric(
-            "Resultados completos",
-            f"{group_report.complete_results}/{total}",
+        metrics[1].metric("Requieren acompañamiento", len(group_report.students))
+        st.subheader("Cómo leer los resultados")
+        st.write(
+            "Un semáforo resume los recursos observados en cada área; no es "
+            "un diagnóstico ni describe por sí solo a cada alumno."
         )
-        metrics[2].metric(
-            "Casos abiertos", sum(group_report.open_cases_by_level.values())
+        for light, explanation in group_report.traffic_light_legend.items():
+            st.markdown(f"**{light}:** {explanation}")
+        st.subheader("Niveles de atención")
+        for level, explanation in group_report.level_explanations.items():
+            st.markdown(
+                f"**{level} ({group_report.open_cases_by_level[level]}):** "
+                f"{explanation}"
+            )
+        st.subheader("Áreas del grupo")
+        st.caption(
+            "Promedio de 0 a 100: un valor mayor indica más recursos favorables. "
+            "Los colores cuentan alumnos, no diagnósticos."
         )
         st.dataframe(
             [
                 {
                     "Área": area.name,
+                    "Qué observa": area.description,
                     "Promedio": f"{area.average:.1f}"
                     if area.average is not None
                     else "—",
                     "Verde": area.distribution["Verde"],
                     "Amarillo": area.distribution["Amarillo"],
                     "Rojo": area.distribution["Rojo"],
-                    "Pendiente": area.distribution["Pendiente"],
+                    "Sin dato": area.distribution["Pendiente"],
                 }
                 for area in group_report.areas
             ],
             hide_index=True,
             width="stretch",
         )
-        st.caption(
-            "El promedio usa sólo resultados completos (0–100). Resume tendencias "
-            "del grupo; no describe a cada estudiante ni es un diagnóstico."
-        )
-        st.markdown("**Casos abiertos por nivel**")
-        st.write(
-            " · ".join(
-                f"{level}: {count}"
-                for level, count in group_report.open_cases_by_level.items()
-            )
-        )
-        st.markdown("**Áreas para iniciar la tutoría**")
+        st.markdown("**Áreas para iniciar la conversación**")
         if group_report.focus_areas:
             for area in group_report.focus_areas:
                 st.write(f"{area.name}: {area.attention_count} en amarillo o rojo")
         else:
             st.write("No hay áreas con semáforo amarillo o rojo.")
+        st.subheader("Alumnos que requieren acompañamiento")
+        st.caption(
+            "Sólo aparecen alumnos con atención abierta. El orden considera "
+            "solicitud de contacto, nivel, áreas que necesitan apoyo y número de "
+            "alertas. Una alerta es una señal para conversar, no un diagnóstico; "
+            "puede existir aunque las áreas estén en verde."
+        )
+        if group_report.students:
+            st.dataframe(
+                [
+                    {
+                        "#": index,
+                        "Alumno": student.name,
+                        "Nivel": student.level,
+                        "Alertas": student.alert_count,
+                        "Pidió contacto": "Sí" if student.requested_contact else "No",
+                    }
+                    for index, student in enumerate(group_report.students, start=1)
+                ],
+                hide_index=True,
+                width="stretch",
+            )
+        else:
+            st.info("No hay alumnos con atención abierta en este grupo.")
         st.download_button(
             "Descargar resumen grupal (PDF)",
             render_group_pdf(group_report),

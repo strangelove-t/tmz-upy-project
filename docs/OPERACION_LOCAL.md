@@ -95,13 +95,16 @@ hasta confirmar que la restauración es correcta; después elimínala.
   muestra una advertencia antes de generar el PDF. Incluye las nueve áreas con
   puntaje, semáforo, interpretación y sugerencia para tutoría.
 - El **Resumen grupal** está en *Reportes › Grupal*: elige carrera y grupo y
-  descarga el PDF para el tutor del grupo. Muestra sólo datos agregados de las
-  respuestas vigentes: tamaño, cobertura, nueve áreas, semáforos, casos abiertos
-  y áreas de atención. No incluye nombres, correos ni diagnósticos. No se
-  habilita si el grupo tiene menos de `minimum_group_size` alumnos.
+  descarga el PDF para el tutor del grupo. Explica las nueve áreas, semáforos y
+  niveles de atención; lista sólo alumnos con atención abierta en el mismo orden
+  que **Casos**. De cada alumno muestra nombre, nivel, número de alertas y si
+  pidió contacto. No incluye correos, respuestas, motivos, notas ni diagnósticos.
+  No se habilita si el grupo tiene menos de `minimum_group_size` alumnos.
 - El resumen grupal se genera en memoria, no se guarda automáticamente en
-  `exports/` ni se envía por correo. Entrégalo por un canal institucional
-  autorizado y conserva el archivo sólo el tiempo necesario.
+  `exports/` ni se envía por correo. **Contiene nombres**: entrégalo únicamente
+  al tutor del grupo por un canal institucional autorizado y consérvalo sólo
+  el tiempo necesario. Los PDF individuales llevan el nombre completo del
+  alumno en el nombre de archivo; los grupales llevan el grupo.
 - En lotes sensibles se requiere una segunda confirmación. La auditoría registra
   si el archivo incluyó la síntesis, pero no copia diagnósticos al registro.
 - La generación por lote escribe en `exports\<fecha-hora>\` los PDFs y

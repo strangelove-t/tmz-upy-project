@@ -152,9 +152,7 @@ def sensitive_notices_frame(
                 "career": career,
                 "group_name": group_name,
                 "category_codes": tuple(item.code for item in summary.categories),
-                "category_labels": ", ".join(
-                    item.label for item in summary.categories
-                ),
+                "category_labels": ", ".join(item.label for item in summary.categories),
                 "requested_support": summary.requested_support,
                 "requires_review": summary.requires_review,
                 "case_id": case_id,
@@ -208,9 +206,7 @@ def submission_responses(
     return frame
 
 
-def submission_case(
-    connection: sqlite3.Connection, submission_id: int
-) -> dict | None:
+def submission_case(connection: sqlite3.Connection, submission_id: int) -> dict | None:
     connection.row_factory = sqlite3.Row
     try:
         row = connection.execute(

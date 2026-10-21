@@ -121,8 +121,10 @@ ordenadas por frecuencia de uso:
 5. **Grupos**: promedios y semáforos por carrera y grupo. Los grupos con menos
    alumnos que `minimum_group_size` no muestran agregados ni la lista.
 6. **Reportes**: pestaña *Individual* con vista previa y descarga; pestaña
-   *Grupal* con resumen PDF para el tutor del grupo (nueve áreas, cobertura,
-   semáforos y casos abiertos, sin datos individuales) y bloqueo bajo
+   *Grupal* con informe PDF para el tutor del grupo: explica las nueve áreas,
+   semáforos y niveles, y lista sólo a alumnos con atención abierta en el orden
+   de **Casos** (nombre, nivel, alertas y solicitud de contacto), sin respuestas,
+   motivos ni diagnósticos. Se bloquea bajo
    `minimum_group_size`; pestaña *Por lote* con advertencia de
    confidencialidad, generación en `exports/` y manifiesto `correo → archivo`.
    El **Reporte de orientación** del alumno usa
@@ -131,8 +133,10 @@ ordenadas por frecuencia de uso:
    por área y recomendaciones sólo para áreas en amarillo o rojo. Nunca incluye
    diagnósticos; el expediente para tutor muestra las nueve áreas y permite
    incluir una síntesis sensible mediante una casilla apagada por defecto. El
-   PDF grupal se descarga en memoria para compartirlo por el canal
-   institucional autorizado; la aplicación no envía correo. La fecha usa
+   PDF grupal contiene nombres, se descarga en memoria para compartirlo sólo
+   con el tutor por un canal institucional autorizado y no se envía por correo.
+   Los archivos individuales incluyen el nombre completo y los grupales el
+   grupo en el nombre del archivo. La fecha usa
    `report_timezone` y
    las celdas del manifiesto se protegen contra fórmulas de hojas de cálculo.
 7. **Administración**: importación en cuatro pasos (Archivo, Validación,
