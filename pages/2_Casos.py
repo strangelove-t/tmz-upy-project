@@ -132,14 +132,36 @@ if visible.empty:
     connection.close()
     st.stop()
 
+page_count = (len(visible) + 29) // 30
+current_page = min(st.session_state.get("cases_page", 0), page_count - 1)
+st.session_state["cases_page"] = current_page
+previous_column, page_column, next_column = st.columns([1, 2, 1])
+if previous_column.button(
+    "← Anterior", disabled=current_page == 0, key="cases_previous_page"
+):
+    st.session_state["cases_page"] = current_page - 1
+    st.rerun()
+page_column.markdown(
+    f"<div style='text-align:center; padding-top:0.4rem'>"
+    f"Página {current_page + 1} de {page_count}</div>",
+    unsafe_allow_html=True,
+)
+if next_column.button(
+    "Siguiente →", disabled=current_page == page_count - 1, key="cases_next_page"
+):
+    st.session_state["cases_page"] = current_page + 1
+    st.rerun()
+
+start = current_page * 30
+page_cases = visible.iloc[start : start + 30]
 st.caption(f"{len(visible)} de {len(cases)} casos")
 st.caption("Haz clic en una fila para abrir el caso.")
-selection = st.dataframe(
-    visible.assign(
-        requested_contact=visible["requested_contact"].map(yes_no),
-        next_follow_up_at=visible["next_follow_up_at"].map(format_date),
-        assigned_to=visible["assigned_to"].fillna("—"),
-        sensitive_information=visible["submission_id"]
+display_cases = (
+    page_cases.assign(
+        requested_contact=page_cases["requested_contact"].map(yes_no),
+        next_follow_up_at=page_cases["next_follow_up_at"].map(format_date),
+        assigned_to=page_cases["assigned_to"].fillna("—"),
+        sensitive_information=page_cases["submission_id"]
         .map(
             dict(zip(notices["submission_id"], notices["category_labels"]))
             if notices is not None
@@ -168,21 +190,48 @@ selection = st.dataframe(
             "Seguimiento",
             "Condición declarada",
         ]
-    ],
+    ]
+    .reset_index(drop=True)
+)
+styled_cases = (
+    display_cases.style.apply(
+        lambda row: [
+            "background-color: #F6F8FA"
+            if row.name % 2 == 0
+            else "background-color: #EEE7F2"
+        ]
+        * len(row),
+        axis=1,
+    )
+    .set_table_styles(
+        [
+            {
+                "selector": "thead th",
+                "props": [
+                    ("background-color", "#4A0870"),
+                    ("color", "#FFFFFF"),
+                    ("font-weight", "bold"),
+                ],
+            }
+        ]
+    )
+)
+selection = st.dataframe(
+    styled_cases,
     hide_index=True,
     width="stretch",
     on_select="rerun",
     # Un clic en cualquier celda abre el caso de esa fila.
     selection_mode="single-cell",
-    key="cases_table",
+    key=f"cases_table_page_{current_page}",
     column_config={"#": st.column_config.NumberColumn(width=45)},
 )
 
 # Sin selección (o si los filtros cambiaron la tabla) se abre el primer caso.
 selected_rows = [
-    row for row, _column in selection.selection.cells if row < len(visible)
+    row for row, _column in selection.selection.cells if row < len(page_cases)
 ]
-case = visible.iloc[selected_rows[0] if selected_rows else 0]
+case = page_cases.iloc[selected_rows[0] if selected_rows else 0]
 case_id = int(case["case_id"])
 st.subheader(f"#{case['priority']} · {case['student_name']}")
 submission_id = int(case["submission_id"])
