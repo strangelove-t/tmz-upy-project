@@ -1,5 +1,7 @@
 from datetime import date
+from html import escape
 
+import plotly.express as px
 import streamlit as st
 
 from tamizaje.cases import CASE_STATUSES, CONTACT_STATUSES
@@ -7,19 +9,25 @@ from tamizaje.database import add_case_note, update_case
 from tamizaje.normalization import normalize_text
 from tamizaje.repository import (
     CLOSED_STATUS,
+    area_results_frame,
     case_notes,
     cases_frame,
     sensitive_notices_frame,
     submission_alerts,
+    submission_responses,
 )
 from tamizaje.sensitive_summary import build_sensitive_summary
 from tamizaje.ui import (
     DISCLAIMER,
+    LIGHT_COLORS,
+    LIGHT_ORDER,
     area_names,
     format_date,
     page_header,
+    question_texts,
     require_context,
     sensitive_config,
+    show_chart,
     show_sensitive_summary,
     status_row,
     yes_no,
@@ -236,6 +244,21 @@ case_id = int(case["case_id"])
 st.subheader(f"#{case['priority']} · {case['student_name']}")
 submission_id = int(case["submission_id"])
 alerts = submission_alerts(connection, submission_id, engine.alerts.version)
+area_results = area_results_frame(connection, engine)
+area_results = area_results[area_results["submission_id"] == submission_id]
+responses = submission_responses(connection, submission_id, question_texts())
+responses_by_question = dict(
+    zip(responses["question_code"], responses["response_raw"], strict=True)
+)
+
+
+def forms_response_text(question_code: str) -> str:
+    response = responses_by_question.get(question_code)
+    if not isinstance(response, str):
+        return "Sin respuesta registrada"
+    return normalize_text(response) or "Sin respuesta registrada"
+
+
 critical_area = area_names(engine).get(case["critical_area_code"], "—")
 
 with st.container(border=True):
@@ -249,8 +272,14 @@ with st.container(border=True):
         }
     )
 
-reason_tab, follow_up_tab, conditions_tab, notes_tab = st.tabs(
-    ["Motivo y alertas", "Seguimiento", "Condiciones y apoyos", "Notas"]
+reason_tab, results_tab, follow_up_tab, conditions_tab, notes_tab = st.tabs(
+    [
+        "Motivo y alertas",
+        "Resultados área",
+        "Seguimiento",
+        "Condiciones y apoyos",
+        "Notas",
+    ]
 )
 
 with reason_tab:
@@ -262,11 +291,121 @@ with reason_tab:
             "clasificarlo. Ábrelo en Estudiantes › Respuestas."
         )
     st.markdown(f"**Alertas ({len(alerts)})**")
-    for alert in alerts.itertuples():
+    alert_types = alerts["alert_level"].dropna().unique().tolist()
+    preferred_types = [
+        "Atención prioritaria",
+        "Seguimiento preventivo",
+        "Revisión manual",
+    ]
+    ordered_types = [level for level in preferred_types if level in alert_types]
+    ordered_types.extend(sorted(set(alert_types) - set(ordered_types)))
+    type_colors = {
+        "Atención prioritaria": ("#5B0A8A", "#F4EDF8"),
+        "Seguimiento preventivo": ("#FDA20C", "#FFF4DD"),
+        "Revisión manual": ("#7D42A0", "#F0E7F5"),
+    }
+    fallback_colors = [
+        ("#5B0A8A", "#F4EDF8"),
+        ("#FDA20C", "#FFF4DD"),
+        ("#7D42A0", "#F0E7F5"),
+    ]
+    for index, alert_type in enumerate(ordered_types):
+        group = alerts[alerts["alert_level"] == alert_type]
+        accent, tint = type_colors.get(
+            alert_type, fallback_colors[index % len(fallback_colors)]
+        )
         with st.container(border=True):
-            st.markdown(f"**{alert.alert_level}** · {alert.alert_category}")
-            st.write(alert.alert_reason)
-            st.caption(f"Acción sugerida: {alert.suggested_action}")
+            st.markdown(
+                f"<div style='background:{tint}; border-left:6px solid {accent}; "
+                "border-radius:8px; padding:0.55rem 0.75rem; font-weight:600'>"
+                f"{escape(alert_type)}</div>",
+                unsafe_allow_html=True,
+            )
+            with st.expander(
+                f"{alert_type} · {format_date(case['detected_at'])} "
+                f"· {len(group)} alertas"
+            ):
+                for alert in group.itertuples():
+                    with st.container(border=True):
+                        st.markdown(f"**{alert.alert_category}**")
+                        st.write(alert.alert_reason)
+                        if alert.alert_level == "Revisión manual":
+                            st.markdown("**Respuesta del formulario (Forms):**")
+                            st.write(forms_response_text(alert.question_code))
+                        else:
+                            st.caption(f"Acción sugerida: {alert.suggested_action}")
+
+with results_tab:
+    if area_results.empty:
+        st.info("Aún no hay resultados para esta respuesta.")
+    else:
+        chart = area_results.assign(
+            score=area_results["normalized_score"].fillna(0).round(1),
+            label=area_results.apply(
+                lambda row: (
+                    f"{row.normalized_score:.1f} · {row.traffic_light}"
+                    if row.is_complete
+                    else "Incompleta"
+                ),
+                axis=1,
+            ),
+        )
+        figure = px.bar(
+            chart,
+            x="score",
+            y="area_name",
+            color="traffic_light",
+            orientation="h",
+            range_x=[0, 100],
+            text="label",
+            color_discrete_map=LIGHT_COLORS,
+            category_orders={"traffic_light": LIGHT_ORDER},
+            labels={"score": "Puntaje (0–100)", "area_name": "", "traffic_light": ""},
+        )
+        figure.update_layout(height=360, margin=dict(l=0, r=0, t=10, b=0))
+        figure.update_yaxes(autorange="reversed")
+        show_chart(figure)
+
+        strengths = area_results[area_results["traffic_light"] == "Verde"]
+        opportunities = area_results[
+            area_results["traffic_light"].isin(["Amarillo", "Rojo"])
+        ]
+        incomplete = area_results[area_results["is_complete"] == 0]
+        columns = st.columns(2)
+        with columns[0]:
+            st.markdown("**Fortalezas**")
+            st.write(", ".join(strengths["area_name"]) or "Ninguna área en verde.")
+        with columns[1]:
+            st.markdown("**Áreas de oportunidad**")
+            st.write(
+                ", ".join(
+                    f"{row.area_name} ({row.traffic_light})"
+                    for row in opportunities.itertuples()
+                )
+                or "Ninguna área en amarillo o rojo."
+            )
+        if not incomplete.empty:
+            st.warning(
+                "Áreas incompletas que requieren revisión: "
+                + ", ".join(incomplete["area_name"])
+            )
+
+        st.markdown("**Recomendaciones**")
+        recommendations = {
+            recommendation.recommendation_code: recommendation
+            for recommendation in engine.recommendations
+        }
+        for row in area_results.itertuples():
+            recommendation = recommendations.get(row.recommendation_code)
+            if recommendation is None:
+                continue
+            with st.expander(f"{row.area_name} · {row.traffic_light}"):
+                st.markdown(
+                    f"**Para el alumno:** {recommendation.student_recommendation}"
+                )
+                st.markdown(
+                    f"**Para el personal:** {recommendation.staff_recommendation}"
+                )
 
 with follow_up_tab:
     if st.session_state.pop("cases_saved", False):
@@ -346,8 +485,7 @@ with notes_tab:
         st.caption("Aún no hay notas para este caso.")
     for note_row in notes.itertuples():
         st.markdown(
-            f"**{note_row.author}** · "
-            f"{format_date(note_row.created_at, engine.report_timezone)}"
+            f"**{format_date(note_row.created_at, engine.report_timezone)}**"
         )
         st.write(note_row.note)
 
