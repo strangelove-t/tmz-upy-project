@@ -231,7 +231,7 @@ selection = st.dataframe(
     on_select="rerun",
     # Un clic en cualquier celda abre el caso de esa fila.
     selection_mode="single-cell",
-    key=f"cases_table_page_{current_page}",
+    key="cases_table",
     column_config={"#": st.column_config.NumberColumn(width=45)},
 )
 
