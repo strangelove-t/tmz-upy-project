@@ -253,3 +253,29 @@ def test_exports_schema_has_sensitive_summary_flag(imported) -> None:
         row[1] for row in connection.execute("PRAGMA table_info(exports)").fetchall()
     }
     assert "includes_sensitive_summary" in columns
+
+
+def pdf_text(content: bytes) -> str:
+    return subprocess.run(
+        ["pdftotext", "-", "-"], input=content, capture_output=True, check=True
+    ).stdout.decode()
+
+
+def test_tutor_pdf_shows_actions_and_conditions_only_when_authorized(
+    imported,
+) -> None:
+    if not shutil.which("pdftotext"):
+        pytest.skip("pdftotext no está disponible")
+    connection, engine, submission_id = imported
+
+    _, default = generate_report(connection, submission_id, engine, "tutor")
+    _, sensitive = generate_report(
+        connection, submission_id, engine, "tutor", include_sensitive=True
+    )
+
+    text = pdf_text(default)
+    assert "Acciones sugeridas para la tutoría" in text
+    assert "Cómo leer el semáforo" in text
+    assert "Condiciones y apoyos declarados" not in text
+    assert "Condiciones y apoyos declarados" in pdf_text(sensitive)
+    assert EMAIL not in pdf_text(sensitive)

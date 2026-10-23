@@ -194,3 +194,30 @@ def test_group_pdf_repeats_student_header_for_large_group(tmp_path) -> None:
     assert text.count("Pidió contacto") >= 3
     assert "Estudiante Sintético 001" in text
     assert "Estudiante Sintético 024" in text
+
+
+def test_group_average_takes_the_color_of_its_thresholds(group_database) -> None:
+    connection, engine = group_database
+    report = build_group_report(connection, engine, "Carrera Sintética", "G-01")
+    thresholds = {area.area_code: area for area in engine.scoring.areas}
+
+    for area in report.areas:
+        definition = thresholds[area.code]
+        if area.average is None:
+            assert area.level == "Pendiente de revisión"
+        elif area.average >= definition.green_min:
+            assert area.level == "Verde"
+        elif area.average >= definition.yellow_min:
+            assert area.level == "Amarillo"
+        else:
+            assert area.level == "Rojo"
+
+
+def test_group_pdf_uses_the_same_identity(group_database) -> None:
+    connection, engine = group_database
+    report = build_group_report(connection, engine, "Carrera Sintética", "G-01")
+
+    content = render_group_pdf(report)
+
+    assert b"Lato-Black" in content and b"/Subtype /Image" in content
+    assert b"Grupo G-01" in content  # título en los metadatos

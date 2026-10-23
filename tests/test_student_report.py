@@ -175,10 +175,12 @@ def test_student_pdf_is_branded_and_fits_two_pages(synthetic_student) -> None:
     assert b"Reporte de orienta" in pdf  # título en los metadatos
 
 
-def test_tutor_pdf_keeps_its_current_layout(synthetic_student) -> None:
+def test_tutor_pdf_uses_the_same_identity(synthetic_student) -> None:
     connection, engine = synthetic_student
 
     _, pdf = generate_report(connection, 1, engine, "tutor")
 
     assert pdf.startswith(b"%PDF")
-    assert b"Lato" not in pdf
+    assert b"Lato-Black" in pdf and b"Lato-Regular" in pdf
+    assert b"/Subtype /Image" in pdf
+    assert b"Expediente acad" in pdf  # título en los metadatos

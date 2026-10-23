@@ -127,12 +127,17 @@ ordenadas por frecuencia de uso:
    motivos ni diagnósticos. Se bloquea bajo
    `minimum_group_size`; pestaña *Por lote* con advertencia de
    confidencialidad, generación en `exports/` y manifiesto `correo → archivo`.
-   El **Reporte de orientación** del alumno usa
-   la identidad de la UPY (logo, morado `#5B0A8A`, acento naranja `#FDA20C` y
-   tipografía Lato de `assets/`): resumen por semáforo, cifra entera de 0 a 100
-   por área y recomendaciones sólo para áreas en amarillo o rojo. Nunca incluye
-   diagnósticos; el expediente para tutor muestra las nueve áreas y permite
-   incluir una síntesis sensible mediante una casilla apagada por defecto. El
+   Los tres PDF (**Reporte de orientación** del alumno, **Expediente para
+   tutor** y **reporte grupal**) comparten la identidad de la UPY definida en
+   `src/tamizaje/pdf_brand.py`: logo, morado `#5B0A8A`, acento naranja
+   `#FDA20C`, tipografía Lato de `assets/`, tarjetas de resumen y cifras enteras
+   de 0 a 100 con barra (se trunca: 69.6 se muestra 69 y nunca cruza un
+   umbral). El reporte del alumno da recomendaciones sólo para áreas en
+   amarillo o rojo y nunca incluye diagnósticos. El expediente para tutor —el
+   mismo en descarga individual y por lote— ordena las nueve áreas de lo más
+   urgente a lo menos, muestra acciones sugeridas y permite incluir una síntesis
+   sensible mediante una casilla apagada por defecto. El reporte grupal colorea
+   cada promedio con los umbrales del área. El
    PDF grupal contiene nombres, se descarga en memoria para compartirlo sólo
    con el tutor por un canal institucional autorizado y no se envía por correo.
    Los archivos individuales incluyen el nombre completo y los grupales el

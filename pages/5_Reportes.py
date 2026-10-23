@@ -182,8 +182,8 @@ with individual_tab:
                     with st.expander(f"{line.area_name} · {status}"):
                         st.write(line.description)
                         st.metric(
-                            "Puntaje",
-                            f"{line.score:.1f} de 100"
+                            "Cifra",
+                            f"{score_text(line.score)} de 100"
                             if line.score is not None
                             else "—",
                         )
@@ -253,9 +253,7 @@ with group_tab:
                 {
                     "Área": area.name,
                     "Qué observa": area.description,
-                    "Promedio": f"{area.average:.1f}"
-                    if area.average is not None
-                    else "—",
+                    "Promedio": score_text(area.average),
                     "Verde": area.distribution["Verde"],
                     "Amarillo": area.distribution["Amarillo"],
                     "Rojo": area.distribution["Rojo"],
