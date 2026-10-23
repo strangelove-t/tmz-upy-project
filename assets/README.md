@@ -1,4 +1,4 @@
-# Recursos del reporte del alumno
+# Recursos de los reportes PDF
 
 - `logo_upy.png`: emblema de la Universidad Politécnica de Yucatán en blanco
   con fondo transparente; se usa sobre la franja morada del encabezado.
@@ -7,7 +7,8 @@
   (`fonts/OFL.txt`). Se incluyen para que el PDF se vea igual en cualquier
   computadora, incluida la instalación en Windows.
 
-Paleta institucional (`src/tamizaje/student_report.py`):
+Paleta institucional (`src/tamizaje/pdf_brand.py`), común al reporte del
+alumno, al expediente para tutor y al reporte grupal:
 
 | Rol | HEX | Uso |
 |---|---|---|

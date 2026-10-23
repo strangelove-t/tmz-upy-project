@@ -2,7 +2,6 @@
 
 import csv
 import hashlib
-import io
 import json
 import re
 import sqlite3
@@ -10,33 +9,22 @@ import unicodedata
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-from html import escape
 from pathlib import Path
 
 import yaml
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import cm
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from tamizaje.database import record_export
 from tamizaje.models import EngineConfig
 from tamizaje.questionnaire import load_questionnaire
 from tamizaje.sensitive_summary import (
-    SensitiveSummary,
     build_sensitive_summary,
     load_sensitive_config,
 )
 from tamizaje.student_report import render_student_pdf
+from tamizaje.tutor_report import render_tutor_pdf
 
 TEMPLATES_DIR = Path(__file__).parents[2] / "templates"
 CONFIG_DIR = Path(__file__).parents[2] / "config"
-LIGHT_COLORS = {
-    "Verde": colors.HexColor("#2e7d32"),
-    "Amarillo": colors.HexColor("#b28704"),
-    "Rojo": colors.HexColor("#c62828"),
-}
 
 
 class ReportError(ValueError):
@@ -302,125 +290,7 @@ def build_report_data(
 def render_pdf(data: dict, template: ReportTemplate) -> bytes:
     if template.report_type == "student":
         return render_student_pdf(data, template.title)
-    styles = getSampleStyleSheet()
-    body = styles["BodyText"]
-    story: list = [Paragraph(template.title, styles["Title"])]
-
-    identity = [
-        (label, data[field])
-        for field, label in (
-            ("student_name", "Nombre"),
-            ("career", "Carrera"),
-            ("group_name", "Grupo"),
-            ("generated_at", "Fecha"),
-            ("scoring_version", "Versión de scoring"),
-        )
-        if field in data
-    ]
-    if identity:
-        table = Table(
-            [
-                [
-                    Paragraph(f"<b>{label}</b>", body),
-                    Paragraph(escape(str(value)), body),
-                ]
-                for label, value in identity
-            ],
-            colWidths=[4 * cm, 12 * cm],
-        )
-        story += [table, Spacer(1, 0.4 * cm)]
-
-    if data.get("introduction"):
-        story += [
-            Paragraph(escape(data["introduction"]), body),
-            Spacer(1, 0.3 * cm),
-        ]
-
-    if data.get("traffic_light_legend"):
-        story.append(Paragraph("Cómo leer el semáforo", styles["Heading2"]))
-        for label, explanation in data["traffic_light_legend"].items():
-            story.append(
-                Paragraph(f"<b>{escape(label)}:</b> {escape(explanation)}", body)
-            )
-
-    if "areas" in data:
-        story.append(Paragraph("Resultados por área", styles["Heading2"]))
-        rows = [["Área e interpretación", "Puntaje", "Semáforo"]]
-        style = [
-            ("GRID", (0, 0), (-1, -1), 0.4, colors.grey),
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#eeeeee")),
-        ]
-        for index, line in enumerate(data["areas"], start=1):
-            rows.append(
-                [
-                    Paragraph(
-                        f"<b>{escape(line.area_name)}</b><br/>"
-                        f"{escape(line.description)}<br/>"
-                        f"{escape(line.interpretation)}",
-                        body,
-                    ),
-                    f"{line.score:.1f}" if line.score is not None else "—",
-                    line.traffic_light or "Pendiente de revisión",
-                ]
-            )
-            if line.traffic_light in LIGHT_COLORS:
-                color = LIGHT_COLORS[line.traffic_light]
-                style.append(("TEXTCOLOR", (2, index), (2, index), color))
-        table = Table(rows, colWidths=[9 * cm, 3 * cm, 4 * cm], repeatRows=1)
-        table.setStyle(TableStyle(style))
-        story += [table, Spacer(1, 0.4 * cm)]
-
-    for field, heading in (
-        ("strengths", "Fortalezas"),
-        ("opportunities", "Áreas de oportunidad"),
-    ):
-        if data.get(field):
-            story.append(Paragraph(heading, styles["Heading2"]))
-            story.append(Paragraph(escape(", ".join(data[field])), body))
-
-    if data.get("recommendations"):
-        heading = (
-            "Recomendaciones para ti"
-            if template.report_type == "student"
-            else "Acciones sugeridas para la tutoría"
-        )
-        story.append(Paragraph(heading, styles["Heading2"]))
-        for area_name, text in data["recommendations"]:
-            story.append(Paragraph(f"<b>{escape(area_name)}:</b> {escape(text)}", body))
-
-    if data.get("resources"):
-        story.append(Paragraph("Recursos institucionales", styles["Heading2"]))
-        for resource in data["resources"]:
-            story.append(Paragraph(f"• {escape(resource)}", body))
-
-    sensitive: SensitiveSummary | None = data.get("sensitive_summary")
-    if sensitive is not None and sensitive.has_sensitive_declaration:
-        story.append(Paragraph("Condiciones y apoyos declarados", styles["Heading2"]))
-        story.append(
-            Paragraph(
-                "<b>Confidencial — uso exclusivo de Orientación y Tutorías.</b>",
-                body,
-            )
-        )
-        for category in sensitive.categories:
-            story.append(Paragraph(f"<b>{escape(category.label)}</b>", body))
-            for label, value in category.fields:
-                story.append(Paragraph(f"{escape(label)}: {escape(value)}", body))
-
-    disclaimer = Paragraph(f"<i>{escape(template.disclaimer)}</i>", body)
-    story += [Spacer(1, 0.6 * cm), disclaimer]
-
-    buffer = io.BytesIO()
-    document = SimpleDocTemplate(
-        buffer,
-        pagesize=letter,
-        title=template.title,
-        invariant=1,
-        leftMargin=2 * cm,
-        rightMargin=2 * cm,
-    )
-    document.build(story)
-    return buffer.getvalue()
+    return render_tutor_pdf(data, template.title)
 
 
 def generate_report(

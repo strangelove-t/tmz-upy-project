@@ -300,6 +300,15 @@ def test_group_report_can_be_downloaded_for_allowed_group(synthetic_database) ->
     )
 
 
+def test_group_preview_shows_whole_averages_like_the_pdf(synthetic_database) -> None:
+    app = run_page("5_Reportes.py")
+
+    areas = next(
+        table.value for table in app.dataframe if "Promedio" in table.value
+    )
+    assert all(value == "—" or value.isdigit() for value in areas["Promedio"])
+
+
 def test_small_group_report_has_no_download(synthetic_database) -> None:
     app = run_page("5_Reportes.py")
     group = next(box for box in app.selectbox if box.label == "Grupo del reporte")
