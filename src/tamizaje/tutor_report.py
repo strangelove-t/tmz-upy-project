@@ -33,6 +33,7 @@ from tamizaje.pdf_brand import (
     header,
     heading_style,
     legend,
+    notes_card,
     pill,
     score_cell,
     small_style,
@@ -225,6 +226,9 @@ def render_tutor_pdf(data: dict, title: str) -> bytes:
                     f"<b>{escape(name)}:</b> {escape(recommendations[name])}",
                     style("sr", fontSize=9.5, leading=12.5, spaceAfter=3),
                 ))
+
+    if data.get("notes"):
+        story += [Spacer(1, 10), notes_card("Notas de Orientación", data["notes"])]
 
     sensitive: SensitiveSummary | None = data.get("sensitive_summary")
     if sensitive is not None and sensitive.has_sensitive_declaration:

@@ -40,6 +40,8 @@ from tamizaje.pdf_brand import (
     header,
     heading_style,
     legend,
+    multiline,
+    notes_card,
     pill,
     score_cell,
     small_style,
@@ -47,6 +49,7 @@ from tamizaje.pdf_brand import (
     style,
     table_header,
 )
+from tamizaje.report_edits import DEFAULT_GROUP_INTRODUCTION
 from tamizaje.reports import load_report_content, safe_filename_fragment
 from tamizaje.repository import CLOSED_STATUS, cases_frame
 
@@ -84,6 +87,8 @@ class GroupReport:
     traffic_light_legend: dict[str, str]
     level_explanations: dict[str, str]
     students: tuple["GroupStudent", ...]
+    introduction: str = DEFAULT_GROUP_INTRODUCTION
+    notes: str = ""
 
     @property
     def focus_areas(self) -> tuple[GroupAreaSummary, ...]:
@@ -319,12 +324,7 @@ def render_group_pdf(report: GroupReport) -> bytes:
             f"{report.generated_at:%d/%m/%Y %H:%M}",
         ),
         Spacer(1, 10),
-        Paragraph(
-            "Este informe resume las respuestas del grupo para orientar "
-            "conversaciones y apoyos. No califica a cada alumno ni constituye un "
-            "diagnóstico.",
-            body,
-        ),
+        Paragraph(multiline(report.introduction), body),
         Paragraph("Resumen del grupo", heading),
         stat_cards([
             (str(report.student_count), "alumnos <b>evaluados</b>",
@@ -386,6 +386,9 @@ def render_group_pdf(report: GroupReport) -> bytes:
             ]
     else:
         story.append(Paragraph("No hay áreas con semáforo amarillo o rojo.", small))
+
+    if report.notes:
+        story += [Spacer(1, 6), notes_card("Notas para el tutor", report.notes)]
 
     story += [
         CondPageBreak(5 * cm),
