@@ -1,8 +1,13 @@
 from datetime import date
 from html import escape
+from io import BytesIO
 
 import plotly.express as px
 import streamlit as st
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import landscape, letter
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import LongTable, Paragraph, SimpleDocTemplate, TableStyle
 
 from tamizaje.cases import CASE_STATUSES, CONTACT_STATUSES
 from tamizaje.database import add_case_note, update_case
@@ -79,6 +84,72 @@ def options(column: str) -> list[str]:
     return sorted(value for value in cases[column].dropna().unique() if value)
 
 
+def excel_bytes(frame) -> bytes:
+    output = BytesIO()
+    frame.to_excel(output, index=False, engine="openpyxl")
+    return output.getvalue()
+
+
+def pdf_bytes(frame, title: str) -> bytes:
+    output = BytesIO()
+    document = SimpleDocTemplate(
+        output,
+        pagesize=landscape(letter),
+        leftMargin=18,
+        rightMargin=18,
+        topMargin=24,
+        bottomMargin=24,
+    )
+    styles = getSampleStyleSheet()
+    cell_style = styles["BodyText"]
+    cell_style.fontName = "Helvetica"
+    cell_style.fontSize = 7
+    cell_style.leading = 9
+    header_style = cell_style.clone("TableHeader")
+    header_style.textColor = colors.white
+    rows = [
+        [
+            Paragraph(f"<b>{escape(str(column))}</b>", header_style)
+            for column in frame
+        ]
+    ]
+    rows.extend(
+        [
+            Paragraph(escape(str(value)), cell_style)
+            for value in row
+        ]
+        for row in frame.itertuples(index=False, name=None)
+    )
+    table = LongTable(
+        rows,
+        colWidths=[
+            (landscape(letter)[0] - 36) / len(frame.columns)
+        ]
+        * len(frame.columns),
+        repeatRows=1,
+    )
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4A0870")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [
+                    colors.HexColor("#F6F8FA"),
+                    colors.HexColor("#EEE7F2"),
+                ]),
+                ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#FFFFFF")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
+    document.build([Paragraph(escape(title), styles["Title"]), table])
+    return output.getvalue()
+
+
 search = normalize_text(
     st.text_input(
         "Buscar por nombre o correo",
@@ -143,7 +214,9 @@ if visible.empty:
 page_count = (len(visible) + 29) // 30
 current_page = min(st.session_state.get("cases_page", 0), page_count - 1)
 st.session_state["cases_page"] = current_page
-previous_column, page_column, next_column = st.columns([1, 2, 1])
+previous_column, page_column, next_column, excel_column, pdf_column = st.columns(
+    [1, 2, 1, 1, 1]
+)
 if previous_column.button(
     "← Anterior", disabled=current_page == 0, key="cases_previous_page"
 ):
@@ -159,6 +232,61 @@ if next_column.button(
 ):
     st.session_state["cases_page"] = current_page + 1
     st.rerun()
+
+export_cases = (
+    visible.assign(
+        requested_contact=visible["requested_contact"].map(yes_no),
+        next_follow_up_at=visible["next_follow_up_at"].map(format_date),
+        assigned_to=visible["assigned_to"].fillna("—"),
+        sensitive_information=visible["submission_id"]
+        .map(
+            dict(zip(notices["submission_id"], notices["category_labels"]))
+            if notices is not None
+            else {}
+        )
+        .fillna("No"),
+    )
+    .rename(
+        columns={
+            "priority": "#",
+            "student_name": "Alumno",
+            "group_name": "Grupo",
+            "case_level": "Nivel",
+            "requested_contact": "Pidió contacto",
+            "case_status": "Estado",
+            "next_follow_up_at": "Seguimiento",
+            "sensitive_information": "Condición declarada",
+        }
+    )[
+        [
+            "#",
+            "Alumno",
+            "Grupo",
+            "Nivel",
+            "Pidió contacto",
+            "Estado",
+            "Seguimiento",
+            "Condición declarada",
+        ]
+    ]
+    .reset_index(drop=True)
+)
+excel_column.download_button(
+    "Excel",
+    data=excel_bytes(export_cases),
+    file_name="casos.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    key="cases_download_excel",
+    width="stretch",
+)
+pdf_column.download_button(
+    "PDF",
+    data=pdf_bytes(export_cases, "Casos"),
+    file_name="casos.pdf",
+    mime="application/pdf",
+    key="cases_download_pdf",
+    width="stretch",
+)
 
 start = current_page * 30
 page_cases = visible.iloc[start : start + 30]
@@ -239,7 +367,25 @@ selection = st.dataframe(
 selected_rows = [
     row for row, _column in selection.selection.cells if row < len(page_cases)
 ]
-case = page_cases.iloc[selected_rows[0] if selected_rows else 0]
+page_case_ids = page_cases["case_id"].tolist()
+same_table_page = (
+    st.session_state.get("cases_last_display_page") == current_page
+    and st.session_state.get("cases_last_display_ids") == page_case_ids
+)
+if selected_rows and same_table_page:
+    st.session_state["cases_selected_case_id"] = int(
+        page_cases.iloc[selected_rows[0]]["case_id"]
+    )
+
+selected_case_id = st.session_state.get("cases_selected_case_id")
+selected_case = visible[visible["case_id"] == selected_case_id]
+if selected_case.empty:
+    case = page_cases.iloc[0]
+    st.session_state["cases_selected_case_id"] = int(case["case_id"])
+else:
+    case = selected_case.iloc[0]
+st.session_state["cases_last_display_page"] = current_page
+st.session_state["cases_last_display_ids"] = page_case_ids
 case_id = int(case["case_id"])
 st.subheader(f"#{case['priority']} · {case['student_name']}")
 submission_id = int(case["submission_id"])

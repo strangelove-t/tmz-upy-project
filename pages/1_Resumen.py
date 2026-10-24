@@ -1,7 +1,13 @@
 from datetime import datetime
+from html import escape
+from io import BytesIO
 
 import plotly.express as px
 import streamlit as st
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import landscape, letter
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import LongTable, Paragraph, SimpleDocTemplate, TableStyle
 
 from tamizaje.repository import (
     CLOSED_STATUS,
@@ -20,6 +26,149 @@ from tamizaje.ui import (
     sensitive_config,
     show_chart,
 )
+
+
+def excel_bytes(frame) -> bytes:
+    output = BytesIO()
+    frame.to_excel(output, index=False, engine="openpyxl")
+    return output.getvalue()
+
+
+def pdf_bytes(frame, title: str) -> bytes:
+    output = BytesIO()
+    document = SimpleDocTemplate(
+        output,
+        pagesize=landscape(letter),
+        leftMargin=18,
+        rightMargin=18,
+        topMargin=24,
+        bottomMargin=24,
+    )
+    styles = getSampleStyleSheet()
+    cell_style = styles["BodyText"]
+    cell_style.fontName = "Helvetica"
+    cell_style.fontSize = 7
+    cell_style.leading = 9
+    header_style = cell_style.clone("TableHeader")
+    header_style.textColor = colors.white
+    rows = [
+        [
+            Paragraph(f"<b>{escape(str(column))}</b>", header_style)
+            for column in frame
+        ]
+    ]
+    rows.extend(
+        [Paragraph(escape(str(value)), cell_style) for value in row]
+        for row in frame.itertuples(index=False, name=None)
+    )
+    table = LongTable(
+        rows,
+        colWidths=[
+            (landscape(letter)[0] - 36) / len(frame.columns)
+        ]
+        * len(frame.columns),
+        repeatRows=1,
+    )
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4A0870")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                (
+                    "ROWBACKGROUNDS",
+                    (0, 1),
+                    (-1, -1),
+                    [
+                        colors.HexColor("#F6F8FA"),
+                        colors.HexColor("#EEE7F2"),
+                    ],
+                ),
+                ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#FFFFFF")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
+    document.build([Paragraph(escape(title), styles["Title"]), table])
+    return output.getvalue()
+
+
+def table_controls(
+    frame, state_key: str, title: str, file_stem: str, page_size: int = 30
+):
+    page_count = max(1, (len(frame) + page_size - 1) // page_size)
+    page_key = f"{state_key}_page"
+    current_page = max(
+        0, min(int(st.session_state.get(page_key, 0)), page_count - 1)
+    )
+    st.session_state[page_key] = current_page
+    previous_column, page_column, next_column, excel_column, pdf_column = st.columns(
+        [1, 2, 1, 1, 1]
+    )
+    if previous_column.button(
+        "← Anterior",
+        disabled=current_page == 0,
+        key=f"{state_key}_previous_page",
+    ):
+        st.session_state[page_key] = current_page - 1
+        st.rerun()
+    page_column.markdown(
+        f"<div style='text-align:center; padding-top:0.4rem'>"
+        f"Página {current_page + 1} de {page_count}</div>",
+        unsafe_allow_html=True,
+    )
+    if next_column.button(
+        "Siguiente →",
+        disabled=current_page == page_count - 1,
+        key=f"{state_key}_next_page",
+    ):
+        st.session_state[page_key] = current_page + 1
+        st.rerun()
+    excel_column.download_button(
+        "Excel",
+        data=excel_bytes(frame),
+        file_name=f"{file_stem}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        key=f"{state_key}_download_excel",
+        width="stretch",
+    )
+    pdf_column.download_button(
+        "PDF",
+        data=pdf_bytes(frame, title),
+        file_name=f"{file_stem}.pdf",
+        mime="application/pdf",
+        key=f"{state_key}_download_pdf",
+        width="stretch",
+    )
+    start = current_page * page_size
+    return frame.iloc[start : start + page_size].reset_index(drop=True)
+
+
+def styled_table(frame):
+    return frame.style.apply(
+        lambda row: [
+            "background-color: #F6F8FA"
+            if row.name % 2 == 0
+            else "background-color: #EEE7F2"
+        ]
+        * len(row),
+        axis=1,
+    ).set_table_styles(
+        [
+            {
+                "selector": "thead th",
+                "props": [
+                    ("background-color", "#4A0870"),
+                    ("color", "#FFFFFF"),
+                    ("font-weight", "bold"),
+                ],
+            }
+        ]
+    )
+
 
 page_header("Inicio", "Qué requiere atención hoy y cuál es el siguiente paso.")
 
@@ -67,8 +216,8 @@ open_cases = cases[cases["case_status"] != CLOSED_STATUS]
 if open_cases.empty:
     st.success("No hay casos abiertos. No hay acciones pendientes.")
 else:
-    upcoming = open_cases.head(5)
-    st.dataframe(
+    upcoming = open_cases
+    display_upcoming = (
         upcoming.assign(
             requested=upcoming["requested_contact"].map({True: "Sí", False: "No"}),
             next_follow_up_at=upcoming["next_follow_up_at"].map(format_date),
@@ -92,7 +241,18 @@ else:
                 "Estado",
                 "Seguimiento",
             ]
-        ],
+        ]
+        .reset_index(drop=True)
+    )
+    page_upcoming = table_controls(
+        display_upcoming,
+        "home_cases",
+        "Siguientes casos por atender",
+        "siguientes-casos",
+        page_size=5,
+    )
+    st.dataframe(
+        styled_table(page_upcoming),
         hide_index=True,
         width="stretch",
         column_config={"#": st.column_config.NumberColumn(width=45)},
@@ -182,7 +342,14 @@ with st.expander("Área con menor promedio por grupo"):
             }
         )
         lowest["Promedio"] = lowest["Promedio"].round(1)
-        st.dataframe(lowest, hide_index=True, width="stretch")
+        lowest = lowest.reset_index(drop=True)
+        page_lowest = table_controls(
+            lowest,
+            "home_lowest_areas",
+            "Área con menor promedio por grupo",
+            "areas-por-grupo",
+        )
+        st.dataframe(styled_table(page_lowest), hide_index=True, width="stretch")
     hidden = int((group_sizes < engine.minimum_group_size).sum())
     if hidden:
         st.caption(
