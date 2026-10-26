@@ -21,17 +21,138 @@ CONFIG_DIR = Path(__file__).parents[1] / "config"
 
 def result(light: str | None, complete: bool = True) -> AreaResult:
     return AreaResult(
-        "A01", None, Decimal("50") if complete else None, light, 1, 1, 1,
-        complete, "0.2",
+        "A01",
+        None,
+        Decimal("50") if complete else None,
+        light,
+        1,
+        1,
+        1,
+        complete,
+        "0.2",
     )
 
 
 def test_project_catalog_covers_every_area_and_light() -> None:
-    recommendations = load_recommendations(
-        CONFIG_DIR, load_scoring_config(CONFIG_DIR)
-    )
+    recommendations = load_recommendations(CONFIG_DIR, load_scoring_config(CONFIG_DIR))
 
     assert len(recommendations) == 27
+
+
+@pytest.mark.parametrize(
+    ("code", "audience", "expected"),
+    [
+        (
+            "REC-A01-V",
+            "staff",
+            "Reconocer la fortaleza e invitar al alumno a participar como "
+            "«par de apoyo» académico.",
+        ),
+        (
+            "REC-A01-A",
+            "staff",
+            "Sugerir asesorías académicas con apoyo de estudiantes que tengan "
+            "facilidad para la asignatura.",
+        ),
+        (
+            "REC-A02-V",
+            "staff",
+            "Es importante reforzar los hábitos de estudio favorables e "
+            "identificar los que se pueden mejorar o fortalecer.",
+        ),
+        (
+            "REC-A02-R",
+            "staff",
+            "Ofrecer un taller y/o una sesión individual de hábitos de estudio "
+            "que incluya organización del tiempo, reglas mnemotécnicas, "
+            "cuadros comparativos, etc.",
+        ),
+        (
+            "REC-A03-A",
+            "staff",
+            "Promover actividades de exploración profesional, como las "
+            "estadías, la movilidad estudiantil y el campo de trabajo, "
+            "entre otras.",
+        ),
+        (
+            "REC-A03-R",
+            "staff",
+            "Ofrecer orientación vocacional y agendar una cita con el área "
+            "de Orientación Psicopedagógica.",
+        ),
+        (
+            "REC-A04-A",
+            "staff",
+            "Brindar estrategias de socialización y la oportunidad de acudir "
+            "a las diversas áreas de ayuda en caso de que lo requiera, además "
+            "de proporcionar seguimiento por parte del área de tutorías.",
+        ),
+        (
+            "REC-A04-R",
+            "staff",
+            "Brindar estrategias de socialización y, en caso de que se requiera, "
+            "solicitarle que acuda a su tutor o al área de Orientación "
+            "Psicopedagógica.",
+        ),
+        (
+            "REC-A06-A",
+            "staff",
+            "Explorar las redes de apoyo en los diversos contextos donde "
+            "interactúa (UPY, familia, salón de clase, etc.) y proporcionar "
+            "seguimiento por parte del área de tutorías.",
+        ),
+        (
+            "REC-A06-R",
+            "staff",
+            "Explorar las redes de apoyo en los diversos contextos donde "
+            "interactúa (UPY, familia, salón de clase, etc.). Si el alumno se "
+            "encuentra actualmente en una situación socioemocional, es "
+            "recomendable buscar apoyo del área de Orientación Psicopedagógica "
+            "y realizar seguimiento en el área de tutorías.",
+        ),
+        (
+            "REC-A07-V",
+            "student",
+            "El cuidado emocional también conlleva hábitos como la higiene del "
+            "sueño, el cuidado de la alimentación y el cuidado físico. "
+            "Continúa cuidándote.",
+        ),
+        (
+            "REC-A08-R",
+            "student",
+            "Es importante comunicar tu afectación al área de Orientación "
+            "Psicopedagógica para determinar si existe alguna adecuación para "
+            "tu condición física.",
+        ),
+        (
+            "REC-A09-A",
+            "staff",
+            "Identificar los factores que pudieran incidir en la continuidad y "
+            "permanencia, y mantener el seguimiento por parte del área de "
+            "tutorías.",
+        ),
+        (
+            "REC-A09-R",
+            "staff",
+            "Identificar los factores que pudieran incidir en la continuidad y "
+            "permanencia, y proporcionar seguimiento por parte del área de "
+            "tutoría. En caso de requerirse, canalizar al área de Orientación "
+            "Psicopedagógica.",
+        ),
+    ],
+)
+def test_teacher_reviewed_recommendation_texts(code, audience, expected) -> None:
+    recommendations = load_recommendations(CONFIG_DIR, load_scoring_config(CONFIG_DIR))
+    recommendation = next(
+        item for item in recommendations if item.recommendation_code == code
+    )
+    actual = (
+        recommendation.student_recommendation
+        if audience == "student"
+        else recommendation.staff_recommendation
+    )
+
+    assert actual == expected
 
 
 def test_project_config_uses_mexico_timezone() -> None:
@@ -54,9 +175,7 @@ def test_engine_config_rejects_unknown_report_timezone(tmp_path) -> None:
 
 
 def test_recommendation_matches_area_and_light() -> None:
-    recommendations = load_recommendations(
-        CONFIG_DIR, load_scoring_config(CONFIG_DIR)
-    )
+    recommendations = load_recommendations(CONFIG_DIR, load_scoring_config(CONFIG_DIR))
 
     assert recommendation_for(result("Rojo"), recommendations).recommendation_code == (
         "REC-A01-R"

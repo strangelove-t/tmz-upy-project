@@ -1,7 +1,8 @@
 # Operación local de Tamizaje UPY
 
-Guía para la computadora institucional donde se usa la aplicación. Todos los
-comandos se ejecutan en PowerShell desde la carpeta del proyecto.
+Guía para la computadora institucional donde se usa la aplicación. Los comandos
+de mantenimiento se ejecutan en PowerShell desde la carpeta del proyecto; el
+inicio diario se hace con doble clic.
 
 La aplicación tiene **una sola contraseña** y no usa usuarios, perfiles ni
 roles. El equipo de desarrollo da soporte sobre el código y no necesita otra
@@ -22,7 +23,8 @@ identidad dentro de la aplicación instalada.
 ## 2. Iniciar
 
 1. Doble clic en el acceso directo **Tamizaje UPY** del escritorio (o en
-   `run_windows.bat`).
+   `abrir_Tamizaje.bat`). No hace falta abrir PowerShell, activar `.venv` ni
+   cambiar la directiva de ejecución.
 2. Se abre una ventana negra titulada *Tamizaje UPY - no cierres esta ventana*
    y, unos segundos después, el navegador con la aplicación. No cierres la
    ventana negra; puedes minimizarla.
@@ -43,7 +45,7 @@ lugar de `127.0.0.1`, detén la aplicación y avisa a soporte.
 
 ### Crear el acceso directo (una sola vez, soporte)
 
-1. Clic derecho sobre `run_windows.bat` › **Mostrar más opciones** ›
+1. Clic derecho sobre `abrir_Tamizaje.bat` › **Mostrar más opciones** ›
    **Enviar a** › **Escritorio (crear acceso directo)**.
 2. Renombra el acceso directo del escritorio como **Tamizaje UPY**.
 3. Opcional: clic derecho › **Propiedades** › **Ejecutar: Minimizada**, para
