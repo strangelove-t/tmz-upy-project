@@ -6,6 +6,10 @@ import streamlit as st
 from tamizaje import ui
 from tamizaje.database import connect_database, record_export
 from tamizaje.group_report import (
+    GROUP_AREAS_NOTE,
+    GROUP_CONFIDENTIALITY_NOTE,
+    GROUP_INTRO,
+    GROUP_ROSTER_NOTE,
     GroupReportError,
     build_group_report,
     group_report_filename,
@@ -25,17 +29,21 @@ from tamizaje.report_edits import (
 )
 from tamizaje.reports import (
     ReportError,
+    apply_recommendation_edits,
     build_report_data,
     export_batch,
-    generate_report,
     load_template,
+    render_pdf,
+    report_filename,
 )
 from tamizaje.repository import students_frame
 from tamizaje.student_report import (
+    STRENGTHS_SUFFIX,
     build_student_view,
     contact_line,
-    scale_note,
+    join_area_names,
     score_text,
+    student_area_note,
 )
 from tamizaje.ui import (
     NO_SUBMISSIONS,
@@ -78,11 +86,13 @@ def show_student_preview(data: dict) -> None:
     columns = st.columns(3)
     for column, level in zip(columns, ("Verde", "Amarillo", "Rojo"), strict=True):
         column.metric(labels[level], view.counts[level])
-    st.caption(scale_note(data.get("score_scale")))
+    st.subheader("Tus resultados por área")
+    st.caption(student_area_note(data.get("score_scale")))
     st.dataframe(
         [
             {
                 "Área": item.area_name,
+                "Qué observa": item.description,
                 "Cifra": score_text(item.score),
                 "Resultado": item.label,
             }
@@ -92,7 +102,64 @@ def show_student_preview(data: dict) -> None:
         width="stretch",
     )
     if contact := contact_line(data):
-        st.caption(f"Orientación y Tutorías: {contact}")
+        st.write(f"Orientación y Tutorías: {contact}")
+
+
+def show_tutor_preview(data: dict) -> None:
+    """Secciones del expediente en el mismo orden que el PDF."""
+    st.write(data.get("introduction", ""))
+    lines = sorted(
+        data["areas"],
+        key=lambda line: (
+            LEVELS[line.traffic_light if line.traffic_light in LEVELS else PENDING][2],
+            line.area_code,
+        ),
+    )
+    st.subheader("Resumen")
+    counts = st.columns(3)
+    for column, level in zip(counts, ("Verde", "Amarillo", "Rojo"), strict=True):
+        column.metric(
+            f"Áreas en {level.lower()}",
+            sum(line.traffic_light == level for line in lines),
+        )
+    st.subheader("Cómo leer el semáforo")
+    for label, explanation in data.get("traffic_light_legend", {}).items():
+        st.markdown(f"**{label}:** {explanation}")
+    st.subheader("Resultados por área")
+    st.caption(
+        "Cifra de 0 a 100 por área. Primero aparecen las áreas que conviene atender."
+    )
+    for line in lines:
+        status = line.traffic_light or "Pendiente de revisión"
+        with st.expander(f"{line.area_name} · {status}"):
+            st.write(line.description)
+            st.metric("Cifra", score_text(line.score))
+            st.write(line.interpretation)
+    recommendations = {
+        line.area_name: line.recommendation for line in lines if line.recommendation
+    }
+    if recommendations:
+        st.subheader("Acciones sugeridas para la tutoría")
+        focus = [
+            line
+            for line in lines
+            if line.traffic_light in ("Rojo", "Amarillo") and line.recommendation
+        ]
+        strengths = [
+            line
+            for line in lines
+            if line.traffic_light == "Verde" and line.recommendation
+        ]
+        if not focus:
+            st.caption("Ninguna área está en amarillo o rojo.")
+        for line in focus:
+            st.markdown(f"**{line.area_name}**")
+            st.text(line.recommendation)
+        if strengths:
+            st.markdown("**Fortalezas para reconocer**")
+            for line in strengths:
+                st.markdown(f"**{line.area_name}**")
+                st.text(line.recommendation)
 
 
 def show_tutor_preview(data: dict) -> None:
@@ -212,6 +279,51 @@ def log_download(
     log_connection.close()
 
 
+def restore_recommendations(originals: dict[str, str]) -> None:
+    for code, value in originals.items():
+        st.session_state[f"recommendation_edit_{code}"] = value
+
+
+def edit_recommendations(data: dict, report_type: str, submission_id: int) -> dict:
+    context = (submission_id, report_type)
+    if st.session_state.get("recommendation_edit_context") != context:
+        for key in list(st.session_state):
+            if key.startswith("recommendation_edit_"):
+                del st.session_state[key]
+        st.session_state["recommendation_edit_context"] = context
+
+    editable = [
+        line
+        for line in data["areas"]
+        if line.recommendation
+        and (report_type == "tutor" or line.traffic_light in ("Amarillo", "Rojo"))
+    ]
+    if not editable:
+        return data
+    originals = {line.area_code: line.recommendation for line in editable}
+    with st.expander("Editar recomendaciones de este reporte"):
+        st.caption(
+            "Los cambios son temporales y sólo afectan este PDF. "
+            "No incluyas diagnósticos en el reporte del alumno."
+        )
+        for line in editable:
+            key = f"recommendation_edit_{line.area_code}"
+            if key not in st.session_state:
+                st.session_state[key] = line.recommendation
+            st.text_area(f"Recomendación · {line.area_name}", key=key)
+        st.button(
+            "Restaurar recomendaciones originales",
+            on_click=restore_recommendations,
+            args=(originals,),
+        )
+    edits = {
+        code: st.session_state[f"recommendation_edit_{code}"]
+        for code, original in originals.items()
+        if st.session_state[f"recommendation_edit_{code}"] != original
+    }
+    return apply_recommendation_edits(data, edits, report_type)
+
+
 individual_tab, group_tab, batch_tab = st.tabs(["Individual", "Grupal", "Por lote"])
 
 with individual_tab:
@@ -298,6 +410,10 @@ with individual_tab:
                     str(data[field])
                     for field in ("student_name", "career", "group_name")
                     if field in data
+                )
+                + " · "
+                + datetime.strptime(data["generated_at"], "%Y-%m-%d").strftime(
+                    "%d/%m/%Y"
                 )
             )
             if report_type == "student":

@@ -108,6 +108,16 @@ def test_windows_launcher_opens_browser_on_loopback() -> None:
     assert "--server.headless false" in launcher
 
 
+def test_windows_desktop_launcher_uses_cmd_without_powershell() -> None:
+    launcher = (ROOT / "abrir_Tamizaje.bat").read_text("utf-8")
+
+    assert 'cd /d "%~dp0"' in launcher
+    assert 'if not exist ".venv\\Scripts\\python.exe" (' in launcher
+    assert 'call ".venv\\Scripts\\activate.bat"' in launcher
+    assert 'call ".\\run_windows.bat"' in launcher
+    assert "Activate.ps1" not in launcher
+
+
 def test_theme_uses_larger_base_font() -> None:
     import tomllib
 

@@ -6,7 +6,7 @@ import json
 import re
 import sqlite3
 import unicodedata
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
@@ -286,6 +286,45 @@ def build_report_data(
             connection, submission_id, config
         )
     return data
+
+
+def apply_recommendation_edits(
+    data: dict, edits: dict[str, str], report_type: str
+) -> dict:
+    """Copia los datos del reporte con textos temporales por código de área."""
+    if report_type not in {"student", "tutor"}:
+        raise ReportError("Tipo de reporte inválido para editar recomendaciones.")
+    allowed = {
+        line.area_code
+        for line in data["areas"]
+        if line.recommendation
+        and line.traffic_light
+        in (
+            ("Amarillo", "Rojo")
+            if report_type == "student"
+            else ("Verde", "Amarillo", "Rojo")
+        )
+    }
+    if unknown := set(edits) - allowed:
+        raise ReportError(f"Área no editable en este reporte: {sorted(unknown)}")
+    normalized = {code: " ".join(value.split()) for code, value in edits.items()}
+    if any(not value for value in normalized.values()):
+        raise ReportError("La recomendación editada no puede estar vacía.")
+    lines = [
+        replace(line, recommendation=normalized[line.area_code])
+        if line.area_code in normalized
+        else line
+        for line in data["areas"]
+    ]
+    return {
+        **data,
+        "areas": lines,
+        "recommendations": [
+            (line.area_name, line.recommendation)
+            for line in lines
+            if line.recommendation
+        ],
+    }
 
 
 def render_pdf(data: dict, template: ReportTemplate) -> bytes:

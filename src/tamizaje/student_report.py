@@ -43,8 +43,14 @@ from tamizaje.pdf_brand import (
     style,
 )
 
-__all__ = ["ASSETS_DIR", "build_student_view", "contact_line", "render_student_pdf",
-           "scale_note", "score_text"]
+__all__ = ["ASSETS_DIR", "build_student_view", "contact_line", "join_area_names",
+           "render_student_pdf", "scale_note", "score_text", "student_area_note",
+           "STRENGTHS_SUFFIX"]
+
+STRENGTHS_SUFFIX = (
+    "Son recursos que te ayudarán durante la carrera: aprovéchalos y compártelos "
+    "con tus compañeros."
+)
 
 
 @dataclass(frozen=True)
@@ -73,6 +79,14 @@ def scale_note(scale: dict | None) -> str:
     return (
         f"Fortaleza desde {green}, seguimiento de {yellow} a {green - 1} y "
         f"atención por debajo de {yellow}."
+    )
+
+
+def student_area_note(scale: dict | None) -> str:
+    return (
+        "Cada área tiene una cifra de 0 a 100 y una barra: entre más alta, "
+        f"más fortaleza. {scale_note(scale)} Primero aparecen las áreas que "
+        "conviene atender."
     )
 
 
@@ -163,7 +177,7 @@ def _area_table(view: StudentReportView) -> Table:
     return table
 
 
-def _join(names: list[str]) -> str:
+def join_area_names(names: list[str]) -> str:
     return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " y " + names[-1]
 
 
@@ -189,12 +203,7 @@ def render_student_pdf(data: dict, title: str) -> bytes:
         _summary(view, labels),
         Spacer(1, 6),
         Paragraph("Tus resultados por área", heading),
-        Paragraph(
-            "Cada área tiene una cifra de 0 a 100 y una barra: entre más alta, "
-            f"más fortaleza. {scale_note(data.get('score_scale'))} Primero "
-            "aparecen las áreas que conviene atender.",
-            small,
-        ),
+        Paragraph(student_area_note(data.get("score_scale")), small),
         Spacer(1, 4),
         _area_table(view),
     ]
@@ -217,9 +226,8 @@ def render_student_pdf(data: dict, title: str) -> bytes:
         story += [
             Paragraph("Tus fortalezas", heading),
             Paragraph(
-                f"Destacas en <b>{escape(_join(view.strengths))}</b>. Son recursos "
-                "que te ayudarán durante la carrera: aprovéchalos y compártelos "
-                "con tus compañeros.",
+                f"Destacas en <b>{escape(join_area_names(view.strengths))}</b>. "
+                f"{STRENGTHS_SUFFIX}",
                 body,
             ),
         ]

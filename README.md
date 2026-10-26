@@ -55,7 +55,9 @@ aplicación instalada.
 python -m streamlit run app.py
 ```
 
-En Windows también se puede usar `run_windows.bat` después de preparar `.venv`.
+En Windows, después de preparar `.venv`, haz doble clic en
+`abrir_Tamizaje.bat` o en un acceso directo a ese archivo. No requiere activar
+el entorno ni cambiar la directiva de ejecución de PowerShell.
 Streamlit escucha sólo en `http://127.0.0.1:8501`; ninguna otra computadora
 puede conectarse. Inicio, cierre, cambio de contraseña, respaldo, restauración
 y manejo de exportaciones están en `docs/OPERACION_LOCAL.md`.
@@ -93,8 +95,9 @@ plantillas de reportes (lista blanca de campos) están en `templates/`. Consulta
 
 ## Guía breve de uso
 
-`run_windows.bat` abre el navegador automáticamente. Para terminar se usa el
-botón **Salir de la aplicación**, que cierra la sesión y apaga el servidor.
+`abrir_Tamizaje.bat` inicia la aplicación y abre el navegador automáticamente.
+Para terminar se usa el botón **Salir de la aplicación**, que cierra la sesión
+y apaga el servidor.
 Después de escribir la contraseña, el menú lateral muestra siete páginas,
 ordenadas por frecuencia de uso:
 
