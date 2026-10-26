@@ -9,6 +9,7 @@ description = "Aplicación local de tamizaje y orientación de la UPY"
 readme = "README.md"
 requires-python = ">=3.12,<3.14"
 dependencies = [
+    "openpyxl>=3.1,<4",
     "pandas>=2.2,<3",
     "plotly>=5.24,<7",
     "pydantic>=2.9,<3",
