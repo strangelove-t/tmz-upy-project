@@ -89,6 +89,19 @@ hasta confirmar que la restauración es correcta; después elimínala.
 
 ## 6. Reportes exportados
 
+- En las tres pestañas de *Reportes* el botón para descargar o generar está
+  **arriba**; debajo aparece la **vista previa**, que conviene revisar antes.
+- En la vista previa se pueden **editar los textos** (introducción,
+  recomendaciones o acciones por área, interpretaciones y aviso final) y
+  **agregar notas** que se imprimen en el PDF. Las cifras, semáforos y nombres
+  no se editan porque vienen del cuestionario. Pulsa **Guardar cambios**: el
+  PDF de arriba se actualiza y los cambios quedan guardados para ese alumno (o
+  grupo), también para el lote. **Restaurar textos originales y borrar notas**
+  deshace todo. Un texto vacío vuelve al original.
+- El **mensaje para el alumno** lo lee el propio alumno: no escribas
+  diagnósticos, alertas ni información de otras personas.
+- La vista previa del lote indica qué alumnos tienen textos editados; para
+  cambiarlos usa la pestaña *Individual*.
 - El **Reporte del alumno** nunca incluye diagnósticos ni condiciones de salud.
 - El **Expediente para tutor** excluye esa información por defecto. La casilla
   para incluirla debe activarse conscientemente para cada alumno o lote y

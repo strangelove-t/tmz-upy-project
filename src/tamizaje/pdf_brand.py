@@ -22,6 +22,7 @@ from reportlab.platypus import (
     Flowable,
     Frame,
     Image,
+    KeepTogether,
     PageTemplate,
     Paragraph,
     Spacer,
@@ -305,3 +306,17 @@ def build_pdf(story: list, title: str, footer: str) -> bytes:
     document.addPageTemplates([PageTemplate(frames=[frame], onPage=draw_page)])
     document.build(story)
     return buffer.getvalue()
+
+
+def multiline(text: str) -> str:
+    """Texto escrito por una persona: se escapa y conserva saltos de línea."""
+    return "<br/>".join(escape(line) for line in text.strip().splitlines())
+
+
+def notes_card(title: str, text: str) -> KeepTogether:
+    return KeepTogether(card([
+        [Paragraph(escape(title), style("nt", fontName="Lato-Bold", fontSize=12,
+                                        leading=15, textColor=BRAND))],
+        [Spacer(1, 3)],
+        [Paragraph(multiline(text), body_style())],
+    ], BRAND, BRAND_SOFT, radius=10, padding=14))

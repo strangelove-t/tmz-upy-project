@@ -16,6 +16,7 @@ import yaml
 from tamizaje.database import record_export
 from tamizaje.models import EngineConfig
 from tamizaje.questionnaire import load_questionnaire
+from tamizaje.report_edits import apply_edits, load_edits
 from tamizaje.sensitive_summary import (
     build_sensitive_summary,
     load_sensitive_config,
@@ -293,6 +294,27 @@ def render_pdf(data: dict, template: ReportTemplate) -> bytes:
     return render_tutor_pdf(data, template.title)
 
 
+def prepare_report(
+    connection: sqlite3.Connection,
+    submission_id: int,
+    engine: EngineConfig,
+    report_type: str,
+    *,
+    include_sensitive: bool = False,
+) -> tuple[ReportTemplate, dict]:
+    """Datos de la lista blanca con los textos editados y notas guardados."""
+    template = load_template(report_type)
+    data = build_report_data(
+        connection,
+        submission_id,
+        engine,
+        template,
+        include_sensitive=include_sensitive,
+    )
+    edits = load_edits(connection, report_type, str(submission_id))
+    return template, apply_edits(data, report_type, edits)
+
+
 def generate_report(
     connection: sqlite3.Connection,
     submission_id: int,
@@ -301,17 +323,16 @@ def generate_report(
     *,
     include_sensitive: bool = False,
 ) -> tuple[str, bytes]:
-    template = load_template(report_type)
     external_id = connection.execute(
         "SELECT external_response_id FROM submissions WHERE id = ?", (submission_id,)
     ).fetchone()
     if external_id is None:
         raise ReportError("El envío no existe.")
-    data = build_report_data(
+    template, data = prepare_report(
         connection,
         submission_id,
         engine,
-        template,
+        report_type,
         include_sensitive=include_sensitive,
     )
     return (

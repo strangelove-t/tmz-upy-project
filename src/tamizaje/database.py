@@ -172,6 +172,18 @@ def initialize_database(connection: sqlite3.Connection) -> None:
             includes_sensitive_summary INTEGER NOT NULL DEFAULT 0
                 CHECK (includes_sensitive_summary IN (0, 1))
         );
+
+        -- Textos editados y notas de un reporte; sólo se guarda lo que cambió.
+        CREATE TABLE IF NOT EXISTS report_edits (
+            id INTEGER PRIMARY KEY,
+            report_type TEXT NOT NULL
+                CHECK (report_type IN ('student', 'tutor', 'group')),
+            subject TEXT NOT NULL,
+            field TEXT NOT NULL,
+            value TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE (report_type, subject, field)
+        );
         """
     )
     case_columns = {
