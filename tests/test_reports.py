@@ -91,6 +91,94 @@ def test_tutor_report_covers_all_areas_without_diagnoses_by_default(imported) ->
         assert forbidden not in text
 
 
+def test_recommendation_edit_only_changes_report_copy(imported) -> None:
+    connection, engine, submission_id = imported
+    data = build_report_data(connection, submission_id, engine, load_template("tutor"))
+    original = next(line for line in data["areas"] if line.recommendation)
+
+    edited = reports_module.apply_recommendation_edits(
+        data, {original.area_code: "Acción personalizada"}, "tutor"
+    )
+
+    assert edited["areas"] is not data["areas"]
+    assert data["areas"][0].recommendation == original.recommendation
+    assert (
+        next(
+            line.recommendation
+            for line in edited["areas"]
+            if line.area_code == original.area_code
+        )
+        == "Acción personalizada"
+    )
+    assert (original.area_name, "Acción personalizada") in edited["recommendations"]
+    assert all(
+        r.staff_recommendation != "Acción personalizada" for r in engine.recommendations
+    )
+
+
+@pytest.mark.parametrize("text", ["", "  \n  "])
+def test_recommendation_edit_rejects_blank_text(imported, text) -> None:
+    connection, engine, submission_id = imported
+    data = build_report_data(connection, submission_id, engine, load_template("tutor"))
+    code = next(line.area_code for line in data["areas"] if line.recommendation)
+
+    with pytest.raises(ReportError, match="vacía"):
+        reports_module.apply_recommendation_edits(data, {code: text}, "tutor")
+
+
+def test_student_edit_rejects_green_area_and_unknown_code(imported) -> None:
+    connection, engine, submission_id = imported
+    data = build_report_data(
+        connection, submission_id, engine, load_template("student")
+    )
+    green = next(
+        line.area_code for line in data["areas"] if line.traffic_light == "Verde"
+    )
+
+    with pytest.raises(ReportError, match="no editable"):
+        reports_module.apply_recommendation_edits(
+            data, {green: "Otro texto"}, "student"
+        )
+    with pytest.raises(ReportError, match="no editable"):
+        reports_module.apply_recommendation_edits(
+            data, {"A99": "Otro texto"}, "student"
+        )
+
+
+def test_recommendation_edit_normalizes_whitespace(imported) -> None:
+    connection, engine, submission_id = imported
+    data = build_report_data(connection, submission_id, engine, load_template("tutor"))
+    code = next(line.area_code for line in data["areas"] if line.recommendation)
+
+    edited = reports_module.apply_recommendation_edits(
+        data, {code: "  Primera línea\n  segunda  línea.  "}, "tutor"
+    )
+
+    assert (
+        next(line.recommendation for line in edited["areas"] if line.area_code == code)
+        == "Primera línea segunda línea."
+    )
+
+
+def test_edited_recommendation_is_literal_in_tutor_pdf(imported) -> None:
+    if not shutil.which("pdftotext"):
+        pytest.skip("pdftotext no está disponible")
+    connection, engine, submission_id = imported
+    template = load_template("tutor")
+    data = build_report_data(connection, submission_id, engine, template)
+    code = next(line.area_code for line in data["areas"] if line.recommendation)
+    edited = reports_module.apply_recommendation_edits(
+        data, {code: "Acción <script> literal"}, "tutor"
+    )
+
+    pdf = reports_module.render_pdf(edited, template)
+    text = subprocess.run(
+        ["pdftotext", "-", "-"], input=pdf, capture_output=True, check=True
+    ).stdout.decode()
+
+    assert "Acción <script> literal" in text
+
+
 def test_template_cannot_request_unauthorized_fields(imported) -> None:
     connection, engine, submission_id = imported
     template = replace(load_template("tutor"), fields=("student_name", "alerts"))

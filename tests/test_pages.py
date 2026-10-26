@@ -5,6 +5,7 @@ import pytest
 from app_helpers import configured_app, run_authenticated_page
 from synthetic_forms import project_config, synthetic_rows
 
+import tamizaje.reports as reports_module
 from tamizaje import ui
 from tamizaje.database import (
     connect_database,
@@ -303,9 +304,7 @@ def test_group_report_can_be_downloaded_for_allowed_group(synthetic_database) ->
 def test_group_preview_shows_whole_averages_like_the_pdf(synthetic_database) -> None:
     app = run_page("5_Reportes.py")
 
-    areas = next(
-        table.value for table in app.dataframe if "Promedio" in table.value
-    )
+    areas = next(table.value for table in app.dataframe if "Promedio" in table.value)
     assert all(value == "—" or value.isdigit() for value in areas["Promedio"])
 
 
@@ -563,6 +562,92 @@ def test_tutor_sensitive_control_defaults_off(sensitive_database) -> None:
     assert any("Expediente para tutor" in option for option in report_type.options)
 
 
+def test_tutor_recommendation_edit_updates_download(synthetic_database) -> None:
+    app = run_page("5_Reportes.py")
+    report_type = next(radio for radio in app.radio if radio.label == "Tipo de reporte")
+    report_type.set_value("tutor").run()
+    before = app.get("download_button")[0].proto.url
+
+    editor = next(field for field in app.text_area if "Recomendación" in field.label)
+    editor.input("Acción <b>literal</b> para tutoría.").run()
+
+    assert not app.exception
+    assert app.get("download_button")[0].proto.url != before
+    assert any("Acción <b>literal</b> para tutoría." in item.value for item in app.text)
+
+
+def test_recommendation_edit_resets_when_student_changes(synthetic_database) -> None:
+    app = run_page("5_Reportes.py")
+    next(radio for radio in app.radio if radio.label == "Tipo de reporte").set_value(
+        "tutor"
+    ).run()
+    first = next(field for field in app.text_area if "Recomendación" in field.label)
+    first.input("Texto temporal de prueba.").run()
+    assert any(field.value == "Texto temporal de prueba." for field in app.text_area)
+
+    next(box for box in app.selectbox if box.label == "Estudiante").select(2).run()
+
+    assert not app.exception
+    assert all(field.value != "Texto temporal de prueba." for field in app.text_area)
+
+
+def test_recommendation_edit_can_be_restored(synthetic_database) -> None:
+    app = run_page("5_Reportes.py")
+    next(radio for radio in app.radio if radio.label == "Tipo de reporte").set_value(
+        "tutor"
+    ).run()
+    first = next(field for field in app.text_area if "Recomendación" in field.label)
+    original = first.value
+    first.input("Texto temporal de prueba.").run()
+    next(
+        button
+        for button in app.button
+        if button.label == "Restaurar recomendaciones originales"
+    ).click().run()
+
+    assert not app.exception
+    assert (
+        next(field for field in app.text_area if "Recomendación" in field.label).value
+        == original
+    )
+
+
+def test_blank_recommendation_disables_individual_download(synthetic_database) -> None:
+    app = run_page("5_Reportes.py")
+    next(radio for radio in app.radio if radio.label == "Tipo de reporte").set_value(
+        "tutor"
+    ).run()
+    next(field for field in app.text_area if "Recomendación" in field.label).input(
+        "   "
+    ).run()
+
+    assert not app.exception
+    assert any("vacía" in error.value for error in app.error)
+    assert not any(
+        button.label == "Descargar expediente para tutor (PDF)"
+        for button in app.get("download_button")
+    )
+
+
+def test_pdf_render_error_does_not_offer_stale_download(
+    synthetic_database, monkeypatch
+) -> None:
+    def fail_render(*_args):
+        raise ValueError("fallo sintético")
+
+    monkeypatch.setattr(reports_module, "render_pdf", fail_render)
+    app = run_page("5_Reportes.py")
+
+    assert not app.exception
+    assert any(
+        "No fue posible generar el reporte" in error.value for error in app.error
+    )
+    assert not any(
+        button.label == "Descargar reporte del alumno (PDF)"
+        for button in app.get("download_button")
+    )
+
+
 def test_tutor_sensitive_control_resets_when_student_changes(
     sensitive_database,
 ) -> None:
@@ -582,6 +667,34 @@ def test_tutor_sensitive_control_resets_when_student_changes(
     assert control.value is False
 
 
+def test_tutor_preview_omits_empty_sensitive_section(synthetic_database) -> None:
+    app = run_page("5_Reportes.py")
+    next(radio for radio in app.radio if radio.label == "Tipo de reporte").set_value(
+        "tutor"
+    ).run()
+    next(
+        box for box in app.checkbox if "diagnósticos declarados" in box.label
+    ).check().run()
+
+    assert not any("no declaró condiciones" in info.value.lower() for info in app.info)
+
+
+def test_tutor_preview_labels_sensitive_section_when_included(
+    sensitive_database,
+) -> None:
+    app = run_page("5_Reportes.py")
+    next(radio for radio in app.radio if radio.label == "Tipo de reporte").set_value(
+        "tutor"
+    ).run()
+    next(
+        box for box in app.checkbox if "diagnósticos declarados" in box.label
+    ).check().run()
+
+    assert any(
+        header.value == "Condiciones y apoyos declarados" for header in app.subheader
+    )
+
+
 def test_student_report_preview_matches_pdf_model(synthetic_database) -> None:
     app = run_page("5_Reportes.py")
 
@@ -589,9 +702,45 @@ def test_student_report_preview_matches_pdf_model(synthetic_database) -> None:
     labels = {metric.label for metric in app.metric}
     assert {"Fortaleza", "Dar seguimiento", "Atender"} <= labels
     preview = app.dataframe[0].value
-    assert list(preview.columns) == ["Área", "Cifra", "Resultado"]
+    assert list(preview.columns) == ["Área", "Qué observa", "Cifra", "Resultado"]
     assert all(value == "—" or value.isdigit() for value in preview["Cifra"])
     assert not any("Cómo leer el semáforo" in item.value for item in app.markdown)
+
+
+def test_student_preview_includes_pdf_sections(synthetic_database) -> None:
+    app = run_page("5_Reportes.py")
+
+    headings = {heading.value for heading in app.subheader}
+    assert {
+        "Tu resumen",
+        "Tus resultados por área",
+        "Tus fortalezas",
+        "¿Con quién puedes hablar?",
+    } <= headings
+    assert any("Qué observa" in table.value for table in app.dataframe)
+    assert any("No constituye un diagnóstico" in item.value for item in app.caption)
+
+
+def test_tutor_preview_includes_pdf_summary_and_sections(synthetic_database) -> None:
+    app = run_page("5_Reportes.py")
+    next(radio for radio in app.radio if radio.label == "Tipo de reporte").set_value(
+        "tutor"
+    ).run()
+
+    headings = {heading.value for heading in app.subheader}
+    assert {
+        "Resumen",
+        "Resultados por área",
+        "Acciones sugeridas para la tutoría",
+    } <= headings
+    assert any(metric.label == "Áreas en verde" for metric in app.metric)
+    assert any("uso exclusivo" in item.value.lower() for item in app.caption)
+
+
+def test_group_preview_includes_contact_count(synthetic_database) -> None:
+    app = run_page("5_Reportes.py")
+
+    assert any(metric.label == "Pidieron contacto" for metric in app.metric)
 
 
 def test_reports_follow_the_selected_student(synthetic_database) -> None:
@@ -602,5 +751,5 @@ def test_reports_follow_the_selected_student(synthetic_database) -> None:
 
     student = next(box for box in app.selectbox if box.label == "Estudiante")
     assert student.value == 4
-    assert any(caption.value in student.format_func(4) for caption in app.caption)
+    assert any(student.format_func(4) in caption.value for caption in app.caption)
     assert app.get("download_button")[0].proto.url != first_pdf

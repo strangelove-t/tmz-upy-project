@@ -34,6 +34,7 @@ from tamizaje.pdf_brand import (
     heading_style,
     legend,
     pill,
+    register_fonts,
     score_cell,
     small_style,
     stat_cards,
@@ -135,6 +136,7 @@ def _sensitive_block(summary: SensitiveSummary) -> list:
 
 
 def render_tutor_pdf(data: dict, title: str) -> bytes:
+    register_fonts()
     body = body_style()
     small = small_style()
     heading = heading_style()
