@@ -1,3 +1,4 @@
+import re
 from datetime import date
 from pathlib import Path
 
@@ -719,6 +720,14 @@ def test_student_preview_includes_pdf_sections(synthetic_database) -> None:
     } <= headings
     assert any("Qué observa" in table.value for table in app.dataframe)
     assert any("No constituye un diagnóstico" in item.value for item in app.caption)
+    assert any(
+        "Cada área tiene una cifra de 0 a 100 y una barra" in item.value
+        for item in app.caption
+    )
+    assert any(
+        "aprovéchalos y compártelos con tus compañeros" in item.value
+        for item in app.markdown
+    )
 
 
 def test_tutor_preview_includes_pdf_summary_and_sections(synthetic_database) -> None:
@@ -738,9 +747,26 @@ def test_tutor_preview_includes_pdf_summary_and_sections(synthetic_database) -> 
 
 
 def test_group_preview_includes_contact_count(synthetic_database) -> None:
+    connection = connect_database(synthetic_database)
+    connection.execute(
+        "UPDATE area_results SET normalized_score = '20', traffic_light = 'Rojo', "
+        "is_complete = 1 WHERE area_code = 'A01'"
+    )
+    connection.commit()
+    connection.close()
     app = run_page("5_Reportes.py")
 
     assert any(metric.label == "Pidieron contacto" for metric in app.metric)
+    assert any(
+        "Informe para el tutor del grupo" in item.value
+        and re.search(r"\d{2}/\d{2}/\d{4} \d{2}:\d{2}", item.value)
+        for item in app.caption
+    )
+    assert any("en amarillo o rojo." in item.value for item in app.markdown)
+    assert any(
+        "Para conocer el motivo o acordar apoyos" in item.value
+        for item in app.caption
+    )
 
 
 def test_reports_follow_the_selected_student(synthetic_database) -> None:

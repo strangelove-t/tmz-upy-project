@@ -6,6 +6,10 @@ import streamlit as st
 from tamizaje import ui
 from tamizaje.database import connect_database, record_export
 from tamizaje.group_report import (
+    GROUP_AREAS_NOTE,
+    GROUP_CONFIDENTIALITY_NOTE,
+    GROUP_INTRO,
+    GROUP_ROSTER_NOTE,
     GroupReportError,
     build_group_report,
     group_report_filename,
@@ -23,10 +27,12 @@ from tamizaje.reports import (
 )
 from tamizaje.repository import students_frame
 from tamizaje.student_report import (
+    STRENGTHS_SUFFIX,
     build_student_view,
     contact_line,
-    scale_note,
+    join_area_names,
     score_text,
+    student_area_note,
 )
 from tamizaje.ui import (
     NO_SUBMISSIONS,
@@ -64,9 +70,8 @@ def show_student_preview(data: dict) -> None:
     columns = st.columns(3)
     for column, level in zip(columns, ("Verde", "Amarillo", "Rojo"), strict=True):
         column.metric(labels[level], view.counts[level])
-    st.caption(scale_note(data.get("score_scale")))
     st.subheader("Tus resultados por área")
-    st.caption("Primero aparecen las áreas que conviene atender.")
+    st.caption(student_area_note(data.get("score_scale")))
     st.dataframe(
         [
             {
@@ -88,8 +93,7 @@ def show_student_preview(data: dict) -> None:
     if view.strengths:
         st.subheader("Tus fortalezas")
         st.write(
-            "Destacas en " + ", ".join(view.strengths) + ". "
-            "Son recursos que te ayudarán durante la carrera."
+            f"Destacas en {join_area_names(view.strengths)}. {STRENGTHS_SUFFIX}"
         )
     if view.missing:
         st.caption(
@@ -345,11 +349,11 @@ with group_tab:
         st.warning(str(error))
     else:
         st.subheader("Resumen para el tutor del grupo")
-        st.write(
-            "Este informe resume las respuestas del grupo para orientar "
-            "conversaciones y apoyos. No califica a cada alumno ni constituye "
-            "un diagnóstico."
+        st.caption(
+            f"Grupo {group_report.group_name} · Informe para el tutor del grupo · "
+            f"{group_report.career} · {group_report.generated_at:%d/%m/%Y %H:%M}"
         )
+        st.write(GROUP_INTRO)
         metrics = st.columns(3)
         metrics[0].metric("Alumnos evaluados", group_report.student_count)
         metrics[1].metric("Requieren acompañamiento", len(group_report.students))
@@ -371,10 +375,7 @@ with group_tab:
                 f"{explanation}"
             )
         st.subheader("Áreas del grupo")
-        st.caption(
-            "Promedio de 0 a 100: un valor mayor indica más recursos favorables. "
-            "Los colores cuentan alumnos, no diagnósticos."
-        )
+        st.caption(GROUP_AREAS_NOTE)
         st.dataframe(
             [
                 {
@@ -394,16 +395,15 @@ with group_tab:
         st.markdown("**Áreas para iniciar la conversación**")
         if group_report.focus_areas:
             for area in group_report.focus_areas:
-                st.write(f"{area.name}: {area.attention_count} en amarillo o rojo")
+                plural = "alumno" if area.attention_count == 1 else "alumnos"
+                st.write(
+                    f"{area.name}: {area.attention_count} {plural} en amarillo o "
+                    f"rojo. {area.description}"
+                )
         else:
             st.write("No hay áreas con semáforo amarillo o rojo.")
         st.subheader("Alumnos que requieren acompañamiento")
-        st.caption(
-            "Sólo aparecen alumnos con atención abierta. El orden considera "
-            "solicitud de contacto, nivel, áreas que necesitan apoyo y número de "
-            "alertas. Una alerta es una señal para conversar, no un diagnóstico; "
-            "puede existir aunque las áreas estén en verde."
-        )
+        st.caption(GROUP_ROSTER_NOTE)
         if group_report.students:
             st.dataframe(
                 [
@@ -421,10 +421,7 @@ with group_tab:
             )
         else:
             st.info("No hay alumnos con atención abierta en este grupo.")
-        st.caption(
-            "Documento confidencial con nombres de alumnos. Uso exclusivo del "
-            "tutor del grupo; compartir sólo por canales institucionales."
-        )
+        st.caption(GROUP_CONFIDENTIALITY_NOTE)
         st.download_button(
             "Descargar resumen grupal (PDF)",
             render_group_pdf(group_report),

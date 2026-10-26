@@ -216,6 +216,28 @@ def group_report_filename(report: GroupReport) -> str:
 FOOTER = (
     "Confidencial · Contiene nombres de alumnos. Uso exclusivo del tutor del grupo."
 )
+GROUP_INTRO = (
+    "Este informe resume las respuestas del grupo para orientar conversaciones y "
+    "apoyos. No califica a cada alumno ni constituye un diagnóstico."
+)
+GROUP_AREAS_NOTE = (
+    "Promedio de 0 a 100: entre más alto, más recursos favorables. Las columnas "
+    "de color cuentan alumnos, no diagnósticos. «Sin dato» significa que no hubo "
+    "información suficiente para interpretar el área."
+)
+GROUP_ROSTER_NOTE = (
+    "Sólo aparecen alumnos con una atención abierta, en el mismo orden que usa "
+    "Orientación y Tutorías: solicitud de contacto, nivel, áreas que necesitan "
+    "apoyo y número de alertas. Una alerta es una señal para conversar, no un "
+    "diagnóstico. Puede haber una atención abierta aunque las áreas estén en "
+    "verde. «Pidió contacto» indica que el alumno solicitó hablar con "
+    "Orientación."
+)
+GROUP_CONFIDENTIALITY_NOTE = (
+    "Documento confidencial con nombres de alumnos. Uso exclusivo del tutor del "
+    "grupo; compartir sólo por canales institucionales. Para conocer el motivo "
+    "o acordar apoyos, consultar a Orientación y Tutorías."
+)
 
 
 def _count(number: int, color, count_style) -> Paragraph:
@@ -321,12 +343,7 @@ def render_group_pdf(report: GroupReport) -> bytes:
             f"{report.generated_at:%d/%m/%Y %H:%M}",
         ),
         Spacer(1, 10),
-        Paragraph(
-            "Este informe resume las respuestas del grupo para orientar "
-            "conversaciones y apoyos. No califica a cada alumno ni constituye un "
-            "diagnóstico.",
-            body,
-        ),
+        Paragraph(GROUP_INTRO, body),
         Paragraph("Resumen del grupo", heading),
         stat_cards([
             (str(report.student_count), "alumnos <b>evaluados</b>",
@@ -357,13 +374,7 @@ def render_group_pdf(report: GroupReport) -> bytes:
         ]),
         CondPageBreak(7 * cm),
         Paragraph("Áreas del grupo", heading),
-        Paragraph(
-            "Promedio de 0 a 100: entre más alto, más recursos favorables. Las "
-            "columnas de color cuentan alumnos, no diagnósticos. «Sin dato» "
-            "significa que no hubo información suficiente para interpretar el "
-            "área.",
-            small,
-        ),
+        Paragraph(GROUP_AREAS_NOTE, small),
         Spacer(1, 4),
         _areas_table(report),
         CondPageBreak(5 * cm),
@@ -392,25 +403,11 @@ def render_group_pdf(report: GroupReport) -> bytes:
     story += [
         CondPageBreak(5 * cm),
         Paragraph("Alumnos que requieren acompañamiento", heading),
-        Paragraph(
-            "Sólo aparecen alumnos con una atención abierta, en el mismo orden "
-            "que usa Orientación y Tutorías: solicitud de contacto, nivel, áreas "
-            "que necesitan apoyo y número de alertas. Una alerta es una señal para "
-            "conversar, no un diagnóstico. Puede haber una atención abierta aunque "
-            "las áreas estén en verde. «Pidió contacto» indica que el alumno "
-            "solicitó hablar con Orientación.",
-            small,
-        ),
+        Paragraph(GROUP_ROSTER_NOTE, small),
         Spacer(1, 4),
         _roster(report) if report.students
         else Paragraph("No hay alumnos con atención abierta.", small),
         Spacer(1, 12),
-        Paragraph(
-            "Documento confidencial con nombres de alumnos. Uso exclusivo del "
-            "tutor del grupo; compartir sólo por canales institucionales. Para "
-            "conocer el motivo o acordar apoyos, consultar a Orientación y "
-            "Tutorías.",
-            small,
-        ),
+        Paragraph(GROUP_CONFIDENTIALITY_NOTE, small),
     ]
     return build_pdf(story, title, FOOTER)

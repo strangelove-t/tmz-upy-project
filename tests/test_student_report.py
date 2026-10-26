@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from synthetic_forms import project_config, synthetic_rows
 
+import tamizaje.student_report as student_report_module
 from tamizaje.database import connect_database, import_preview, initialize_database
 from tamizaje.importers import preview_csv
 from tamizaje.reports import (
@@ -92,6 +93,13 @@ def test_scale_note_follows_configured_thresholds() -> None:
         "Fortaleza desde 70, seguimiento de 40 a 69 y atención por debajo de 40."
     )
     assert scale_note(None) == "Entre más alta la cifra, mayor fortaleza."
+
+
+def test_join_area_names_matches_report_prose() -> None:
+    assert student_report_module.join_area_names(["Académica"]) == "Académica"
+    assert student_report_module.join_area_names(["Académica", "Social"]) == (
+        "Académica y Social"
+    )
 
 
 def test_contact_line_is_omitted_until_configured() -> None:
