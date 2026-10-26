@@ -128,7 +128,8 @@ ordenadas por frecuencia de uso:
    ni nombres) y se agregan notas al PDF. Las ediciones se guardan en la tabla
    `report_edits` por alumno o grupo —sólo lo que difiere del original— y las
    usan la descarga individual y el lote (`tamizaje.report_edits`). Pestaña
-   *Individual* con vista previa y descarga; pestaña
+   *Individual* con vista previa y descarga: su editor rápido de recomendaciones
+   cambia sólo el PDF individual activo y no se guarda ni pasa al lote; pestaña
    *Grupal* con informe PDF para el tutor del grupo: explica las nueve áreas,
    semáforos y niveles, y lista sólo a alumnos con atención abierta en el orden
    de **Casos** (nombre, nivel, alertas y solicitud de contacto), sin respuestas,

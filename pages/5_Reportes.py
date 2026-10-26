@@ -3,18 +3,19 @@ from pathlib import Path
 
 import streamlit as st
 
+from tamizaje import reports as report_service
 from tamizaje import ui
 from tamizaje.database import connect_database, record_export
 from tamizaje.group_report import (
     GROUP_AREAS_NOTE,
     GROUP_CONFIDENTIALITY_NOTE,
-    GROUP_INTRO,
     GROUP_ROSTER_NOTE,
     GroupReportError,
     build_group_report,
     group_report_filename,
     render_group_pdf,
 )
+from tamizaje.pdf_brand import LEVELS, PENDING
 from tamizaje.report_edits import (
     MAX_TEXT_LENGTH,
     EditableField,
@@ -33,7 +34,6 @@ from tamizaje.reports import (
     build_report_data,
     export_batch,
     load_template,
-    render_pdf,
     report_filename,
 )
 from tamizaje.repository import students_frame
@@ -82,6 +82,8 @@ NOTES_WARNINGS = {
 def show_student_preview(data: dict) -> None:
     """Resultados del PDF del alumno; los textos se editan debajo."""
     view = build_student_view(data, data["student_labels"])
+    st.write(data["student_introduction"])
+    st.subheader("Tu resumen")
     labels = data["student_labels"]
     columns = st.columns(3)
     for column, level in zip(columns, ("Verde", "Amarillo", "Rojo"), strict=True):
@@ -101,6 +103,26 @@ def show_student_preview(data: dict) -> None:
         hide_index=True,
         width="stretch",
     )
+    if view.focus:
+        st.subheader("Qué te recomendamos")
+        for area_name, text, _level in view.focus:
+            st.markdown(f"**{area_name}**")
+            st.text(text)
+    if view.strengths:
+        st.subheader("Tus fortalezas")
+        st.write(f"Destacas en {join_area_names(view.strengths)}. {STRENGTHS_SUFFIX}")
+    if view.missing:
+        st.caption(
+            "No tuvimos información suficiente para interpretar "
+            + ", ".join(view.missing)
+            + ". Si quieres, platícalo con Orientación y Tutorías."
+        )
+    if data.get("notes"):
+        st.subheader("Mensaje de Orientación y Tutorías")
+        st.write(data["notes"])
+    st.subheader("¿Con quién puedes hablar?")
+    for resource in data.get("resources", []):
+        st.write(f"• {resource}")
     if contact := contact_line(data):
         st.write(f"Orientación y Tutorías: {contact}")
 
@@ -160,22 +182,6 @@ def show_tutor_preview(data: dict) -> None:
             for line in strengths:
                 st.markdown(f"**{line.area_name}**")
                 st.text(line.recommendation)
-
-
-def show_tutor_preview(data: dict) -> None:
-    """Resultados del expediente; interpretaciones y acciones se editan debajo."""
-    st.dataframe(
-        [
-            {
-                "Área": line.area_name,
-                "Cifra": score_text(line.score),
-                "Semáforo": line.traffic_light or "Pendiente de revisión",
-            }
-            for line in data["areas"]
-        ],
-        hide_index=True,
-        width="stretch",
-    )
 
 
 def _area_of(key: str) -> str | None:
@@ -248,6 +254,9 @@ def edit_form(
         except ReportEditError as error:
             st.error(str(error))
         else:
+            for key in list(st.session_state):
+                if key.startswith("recommendation_edit_"):
+                    del st.session_state[key]
             st.session_state[f"{prefix}_saved"] = True
             st.rerun()
     if edited_at and st.button(
@@ -256,6 +265,9 @@ def edit_form(
         icon=":material/restart_alt:",
     ):
         clear_edits(connection, report_type, subject)
+        for key in list(st.session_state):
+            if key.startswith("recommendation_edit_"):
+                del st.session_state[key]
         for widget in keys.values():
             st.session_state.pop(widget, None)
         st.rerun()
@@ -379,13 +391,16 @@ with individual_tab:
         )
         edits = load_edits(connection, report_type, subject)
         data = apply_edits(original, report_type, edits)
-        filename, content = generate_report(
-            connection,
-            submission_id,
-            engine,
-            report_type,
-            include_sensitive=include_sensitive,
-        )
+        data = edit_recommendations(data, report_type, submission_id)
+        external_id = connection.execute(
+            "SELECT external_response_id FROM submissions WHERE id = ?",
+            (submission_id,),
+        ).fetchone()[0]
+        filename = report_filename(report_type, external_id, data["student_name"])
+        try:
+            content = report_service.render_pdf(data, template)
+        except Exception as error:
+            raise ReportError("El PDF no pudo renderizarse.") from error
     except ReportError as error:
         st.error(f"No fue posible generar el reporte: {error}")
     else:
@@ -420,8 +435,14 @@ with individual_tab:
                 show_student_preview(data)
             else:
                 show_tutor_preview(data)
-            if "sensitive_summary" in data:
-                show_sensitive_summary(data["sensitive_summary"])
+                if data.get("notes"):
+                    st.subheader("Notas de Orientación")
+                    st.write(data["notes"])
+            if summary := data.get("sensitive_summary"):
+                if summary.has_sensitive_declaration:
+                    st.subheader("Condiciones y apoyos declarados")
+                    show_sensitive_summary(summary)
+            st.caption(data["disclaimer"])
             edit_form(
                 report_type,
                 subject,
@@ -431,6 +452,10 @@ with individual_tab:
             )
 
 with group_tab:
+    st.write(
+        "Informe para el tutor del grupo con tendencias generales y alumnos que "
+        "requieren acompañamiento. No incluye correos, motivos ni diagnósticos."
+    )
     st.warning(
         "El PDF contiene nombres de alumnos. Entrégalo sólo al tutor del grupo "
         "por un canal institucional autorizado."
@@ -465,24 +490,33 @@ with group_tab:
         )
         with st.container(border=True):
             st.subheader("Resumen para el tutor del grupo")
+            st.caption(
+                f"Grupo {group_report.group_name} · Informe para el tutor del grupo · "
+                f"{group_report.career} · {group_report.generated_at:%d/%m/%Y %H:%M}"
+            )
             st.write(group_report.introduction)
-            metrics = st.columns(2)
+            metrics = st.columns(3)
             metrics[0].metric("Alumnos evaluados", group_report.student_count)
             metrics[1].metric("Requieren acompañamiento", len(group_report.students))
+            metrics[2].metric(
+                "Pidieron contacto",
+                sum(student.requested_contact for student in group_report.students),
+            )
             st.subheader("Cómo leer los resultados")
+            st.write(
+                "Un semáforo resume los recursos observados en cada área; no es "
+                "un diagnóstico ni describe por sí solo a cada alumno."
+            )
             for light, explanation in group_report.traffic_light_legend.items():
                 st.markdown(f"**{light}:** {explanation}")
-            st.markdown("**Niveles de atención**")
+            st.subheader("Niveles de atención")
             for level, explanation in group_report.level_explanations.items():
                 st.markdown(
                     f"**{level} ({group_report.open_cases_by_level[level]}):** "
                     f"{explanation}"
                 )
             st.subheader("Áreas del grupo")
-            st.caption(
-                "Promedio de 0 a 100: un valor mayor indica más recursos "
-                "favorables. Los colores cuentan alumnos, no diagnósticos."
-            )
+            st.caption(GROUP_AREAS_NOTE)
             st.dataframe(
                 [
                     {
@@ -502,18 +536,18 @@ with group_tab:
             st.markdown("**Áreas para iniciar la conversación**")
             if group_report.focus_areas:
                 for area in group_report.focus_areas:
+                    plural = "alumno" if area.attention_count == 1 else "alumnos"
                     st.write(
-                        f"{area.name}: {area.attention_count} en amarillo o rojo"
+                        f"{area.name}: {area.attention_count} {plural} en amarillo o "
+                        f"rojo. {area.description}"
                     )
             else:
                 st.write("No hay áreas con semáforo amarillo o rojo.")
+            if group_report.notes:
+                st.subheader("Notas para el tutor")
+                st.write(group_report.notes)
             st.subheader("Alumnos que requieren acompañamiento")
-            st.caption(
-                "Sólo aparecen alumnos con atención abierta. El orden considera "
-                "solicitud de contacto, nivel, áreas que necesitan apoyo y número "
-                "de alertas. Una alerta es una señal para conversar, no un "
-                "diagnóstico; puede existir aunque las áreas estén en verde."
-            )
+            st.caption(GROUP_ROSTER_NOTE)
             if group_report.students:
                 st.dataframe(
                     [
@@ -535,6 +569,7 @@ with group_tab:
                 )
             else:
                 st.info("No hay alumnos con atención abierta en este grupo.")
+            st.caption(GROUP_CONFIDENTIALITY_NOTE)
             edit_form(
                 "group",
                 subject,
