@@ -100,6 +100,11 @@ hasta confirmar que la restauración es correcta; después elimínala.
   PDF de arriba se actualiza y los cambios quedan guardados para ese alumno (o
   grupo), también para el lote. **Restaurar textos originales y borrar notas**
   deshace todo. Un texto vacío vuelve al original.
+- En *Individual*, **Editar recomendaciones de este reporte** permite probar
+  cambios inmediatos sólo en la vista previa y el PDF individual actual. Son
+  temporales: al cambiar de alumno o tipo de reporte se descartan y no se usan
+  en el lote. Para conservar una recomendación, edítala también en el
+  formulario y pulsa **Guardar cambios**.
 - El **mensaje para el alumno** lo lee el propio alumno: no escribas
   diagnósticos, alertas ni información de otras personas.
 - La vista previa del lote indica qué alumnos tienen textos editados; para
