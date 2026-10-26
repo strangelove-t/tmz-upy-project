@@ -91,16 +91,19 @@ hasta confirmar que la restauración es correcta; después elimínala.
 
 ## 6. Reportes exportados
 
-- En **Reportes › Individual**, selecciona al alumno y el destinatario. La vista
-  previa sigue el contenido y el orden del PDF, aunque no copia su paginación.
-  Abre **Editar recomendaciones de este reporte** para ajustar un texto. El PDF
-  descargado incorpora lo que ves; **Restaurar recomendaciones originales**
-  recupera los textos aprobados. No dejes ninguna recomendación vacía.
-- Esos ajustes son temporales: se descartan al cambiar de alumno o de tipo de
-  reporte, cerrar la sesión o reiniciar la aplicación. No cambian el catálogo,
-  otros alumnos ni los PDF **Por lote**. Si necesitas conservar un texto
-  personalizado, descarga el PDF antes de cambiar de contexto. No escribas
-  diagnósticos en recomendaciones destinadas al alumno.
+- En las tres pestañas de *Reportes* el botón para descargar o generar está
+  **arriba**; debajo aparece la **vista previa**, que conviene revisar antes.
+- En la vista previa se pueden **editar los textos** (introducción,
+  recomendaciones o acciones por área, interpretaciones y aviso final) y
+  **agregar notas** que se imprimen en el PDF. Las cifras, semáforos y nombres
+  no se editan porque vienen del cuestionario. Pulsa **Guardar cambios**: el
+  PDF de arriba se actualiza y los cambios quedan guardados para ese alumno (o
+  grupo), también para el lote. **Restaurar textos originales y borrar notas**
+  deshace todo. Un texto vacío vuelve al original.
+- El **mensaje para el alumno** lo lee el propio alumno: no escribas
+  diagnósticos, alertas ni información de otras personas.
+- La vista previa del lote indica qué alumnos tienen textos editados; para
+  cambiarlos usa la pestaña *Individual*.
 - El **Reporte del alumno** nunca incluye diagnósticos ni condiciones de salud.
 - El **Expediente para tutor** excluye esa información por defecto. La casilla
   para incluirla debe activarse conscientemente para cada alumno o lote y

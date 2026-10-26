@@ -779,3 +779,78 @@ def test_reports_follow_the_selected_student(synthetic_database) -> None:
     assert student.value == 4
     assert any(student.format_func(4) in caption.value for caption in app.caption)
     assert app.get("download_button")[0].proto.url != first_pdf
+
+
+def element_order(app) -> list[str]:
+    return [
+        f"{node.type}:{getattr(node, 'label', getattr(node, 'value', ''))}"
+        for node in app.main
+    ]
+
+
+@pytest.mark.parametrize(
+    ("button", "preview"),
+    [
+        ("download_button:Descargar reporte del alumno (PDF)",
+         "subheader:Vista previa · Reporte de orientación"),
+        ("download_button:Descargar resumen grupal (PDF)",
+         "subheader:Resumen para el tutor del grupo"),
+        ("button:Generar todos los reportes", "subheader:Vista previa del lote"),
+    ],
+)
+def test_report_buttons_come_before_their_preview(
+    synthetic_database, button, preview
+) -> None:
+    order = element_order(run_page("5_Reportes.py"))
+
+    assert order.index(button) < order.index(preview)
+
+
+def test_individual_report_texts_and_notes_can_be_edited(synthetic_database) -> None:
+    app = run_page("5_Reportes.py")
+    first_pdf = app.get("download_button")[0].proto.url
+
+    intro = next(area for area in app.text_area if area.label == "Introducción")
+    intro.input("Introducción editada para el PDF.")
+    notes = next(area for area in app.text_area if area.label.startswith("Mensaje"))
+    notes.input("Te esperamos en Orientación.")
+    next(b for b in app.button if b.label == "Guardar cambios").click().run()
+
+    assert not app.exception
+    assert any("Cambios guardados" in item.value for item in app.success)
+    assert app.get("download_button")[0].proto.url != first_pdf
+    connection = connect_database(synthetic_database)
+    stored = dict(connection.execute(
+        "SELECT field, value FROM report_edits WHERE report_type = 'student'"
+    ).fetchall())
+    connection.close()
+    assert stored == {
+        "student_introduction": "Introducción editada para el PDF.",
+        "notes": "Te esperamos en Orientación.",
+    }
+
+    next(b for b in app.button if b.label.startswith("Restaurar")).click().run()
+
+    connection = connect_database(synthetic_database)
+    assert connection.execute("SELECT COUNT(*) FROM report_edits").fetchone()[0] == 0
+    connection.close()
+    intro = next(area for area in app.text_area if area.label == "Introducción")
+    assert intro.value != "Introducción editada para el PDF."
+
+
+def test_batch_preview_marks_edited_reports(synthetic_database) -> None:
+    connection = connect_database(synthetic_database)
+    connection.execute(
+        "INSERT INTO report_edits (report_type, subject, field, value, updated_at) "
+        "VALUES ('tutor', '1', 'notes', 'Nota sintética', '2026-10-24T00:00:00+00:00')"
+    )
+    connection.commit()
+    connection.close()
+
+    app = run_page("5_Reportes.py")
+
+    batch = next(
+        table.value for table in app.dataframe if "Expediente para tutor" in table.value
+    )
+    assert (batch["Expediente para tutor"] == "Editado").sum() == 1
+    assert (batch["Reporte del alumno"] == "Editado").sum() == 0

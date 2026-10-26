@@ -33,6 +33,7 @@ from tamizaje.pdf_brand import (
     card,
     header,
     heading_style,
+    notes_card,
     pill,
     register_fonts,
     score_cell,
@@ -237,6 +238,10 @@ def render_student_pdf(data: dict, title: str) -> bytes:
             "Orientación y Tutorías.",
             small,
         )]
+
+    if data.get("notes"):
+        story += [Spacer(1, 12),
+                  notes_card("Mensaje de Orientación y Tutorías", data["notes"])]
 
     contact_rows = [
         Paragraph("¿Con quién puedes hablar?",

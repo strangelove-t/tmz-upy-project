@@ -123,12 +123,13 @@ ordenadas por frecuencia de uso:
    Reportes con el mismo alumno.
 5. **Grupos**: promedios y semáforos por carrera y grupo. Los grupos con menos
    alumnos que `minimum_group_size` no muestran agregados ni la lista.
-6. **Reportes**: pestaña *Individual* con vista previa, descarga y ajuste de
-   recomendaciones sólo para el PDF activo, con opción de
-   restaurar el texto aprobado. Los ajustes no se guardan ni afectan al
-   catálogo o los lotes; la vista previa reproduce el contenido y orden del
-   PDF, no su paginación. La pestaña *Grupal* ofrece un informe PDF para el
-   tutor del grupo: explica las nueve áreas,
+6. **Reportes**: en cada pestaña el botón de descarga o generación va arriba
+   y debajo la vista previa, donde se editan los textos (no cifras, semáforos
+   ni nombres) y se agregan notas al PDF. Las ediciones se guardan en la tabla
+   `report_edits` por alumno o grupo —sólo lo que difiere del original— y las
+   usan la descarga individual y el lote (`tamizaje.report_edits`). Pestaña
+   *Individual* con vista previa y descarga; pestaña
+   *Grupal* con informe PDF para el tutor del grupo: explica las nueve áreas,
    semáforos y niveles, y lista sólo a alumnos con atención abierta en el orden
    de **Casos** (nombre, nivel, alertas y solicitud de contacto), sin respuestas,
    motivos ni diagnósticos. Se bloquea bajo
